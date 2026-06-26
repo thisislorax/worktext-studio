@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆ Worktext Studio ˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #fef6f9;
+      --surface:     #fff0f5;
+      --surface-mid: #fdf0f4;
+      --border:      #f4c0d1;
+      --border-mid:  #ed93b1;
+      --accent:      #d4537e;
+      --accent-dark: #993556;
+      --accent-dim:  #fbe4ed;
+      --warn:        #c0395e;
+      --warn-dim:    #fbe4ed;
+      --ok:          #2e7d32;
+      --text:        #72243e;
+      --text-mid:    #993556;
+      --muted:       #c47090;
+      --panel-w:     280px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Nunito', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: 52px 1fr;
+      grid-template-columns: var(--panel-w) 1fr;
+      grid-template-areas:
+        "toolbar toolbar"
+        "sidebar canvas";
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      grid-area: toolbar;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: nowrap;
+    }
+    .toolbar-brand {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-dark);
+      margin-right: 4px;
+      white-space: nowrap;
+    }
+    .toolbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 6px;
+      border: 1px solid var(--border-mid);
+      background: #fff;
+      color: var(--text-mid);
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn:hover { background: var(--accent-dim); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn-active {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+      color: #fff;
+      font-weight: 700;
+    }
+    .toolbar-spacer { flex: 1; min-width: 4px; }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .status-pill .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+    .status-pill.ok  { border-color: #a5d6a7; color: var(--ok); }
+    .status-pill.ok  .dot { background: var(--ok); }
+    .status-pill.warn { border-color: var(--warn); color: var(--warn); }
+    .status-pill.warn .dot { background: var(--warn); }
+
+    /* Renderer select */
+    .renderer-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .renderer-wrap label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .renderer-wrap select {
+      font-family: 'Nunito', system-ui, sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-mid);
+      background: #fff;
+      border: 1px solid var(--border-mid);
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      grid-area: sidebar;
+      background: var(--surface-mid);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-section {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .file-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .file-card .file-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-all;
+      margin-bottom: 2px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row .label { color: var(--muted); }
+    .stat-row .value { font-weight: 600; color: var(--text); }
+    .stat-row .value.warn { color: var(--warn); }
+    .stat-row .value.ok   { color: var(--ok); }
+
+    /* Mode info box */
+    .mode-info {
+      margin: 0 14px 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      line-height: 1.5;
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      color: #2e7d32;
+    }
+    .mode-info.raw {
+      background: #fff8e1;
+      border-color: #ffe082;
+      color: #e65100;
+    }
+
+    .page-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    .page-list-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-mid);
+      transition: background 0.1s;
+    }
+    .page-list-item:hover { background: var(--accent-dim); }
+    .page-list-item.active { background: var(--accent-dim); color: var(--accent-dark); font-weight: 600; }
+    .page-list-item .pg-num {
+      width: 22px; height: 22px;
+      border-radius: 4px;
+      background: var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      color: var(--text-mid);
+      flex-shrink: 0;
+    }
+    .page-list-item.active .pg-num { background: var(--accent); color: #fff; }
+    .page-list-item.overflow-item { color: var(--warn); }
+    .page-list-item.overflow-item .pg-num { background: var(--warn-dim); color: var(--warn); }
+    .pg-flag {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: var(--warn-dim);
+      color: var(--warn);
+      font-weight: 700;
+    }
+
+    /* ── Per-page bar ── */
+    .pg-height-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+      flex: 1;
+    }
+    .pg-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .pg-name-row .pg-name { font-size: 12px; }
+    .pg-name-row .pg-px {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .pg-name-row .pg-px.over { color: var(--warn); font-weight: 700; }
+    .pg-bar-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .pg-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .pg-bar-fill.over { background: var(--warn); }
+
+    /* ── Canvas ── */
+    .canvas-area {
+      grid-area: canvas;
+      overflow: auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 32px;
+      gap: 40px;
+    }
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      color: var(--muted);
+      max-width: 320px;
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state h2 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .empty-state p  { font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+
+    /* ── Page frame ── */
+    .page-frame-wrapper { position: relative; flex-shrink: 0; }
+    .page-label {
+      position: absolute;
+      top: -26px; left: 0; right: 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-label .page-name { flex: 1; }
+    .page-label .height-readout {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .page-label .height-readout.over { color: var(--warn); }
+    .page-label .overflow-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--warn);
+      background: var(--warn-dim);
+      padding: 1px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    /* PDF-sim badge */
+    .page-label .sim-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #2e7d32;
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      padding: 1px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    /*
+      816 × 1056 px — matches Puppeteer viewport exactly.
+    */
+    .page-frame {
+      width: 816px;
+      height: 1056px;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(180,80,120,0.12);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .page-frame.overflow {
+      box-shadow: 0 0 0 3px var(--warn), 0 4px 24px rgba(180,80,120,0.15);
+      border-color: var(--warn);
+    }
+    /* Margin guide */
+    .margin-guide {
+      position: absolute;
+      top:    38px;
+      left:   77px;
+      right:  48px;
+      bottom: 38px;
+      border: 1.5px dashed rgba(212,83,126,0.28);
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    /* 990px ceiling */
+    .ceiling-line {
+      position: absolute;
+      top: 990px; left: 0; right: 0;
+      height: 2px;
+      background: var(--warn);
+      opacity: 0.65;
+      z-index: 11;
+      pointer-events: none;
+    }
+    .ceiling-label {
+      position: absolute;
+      top: 978px; right: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--warn);
+      z-index: 12;
+      pointer-events: none;
+      background: rgba(255,246,249,0.88);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .page-iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 816px;
+      height: 1056px;
+      border: none;
+      z-index: 1;
+    }
+
+    /* Scrollbars */
+    .canvas-area::-webkit-scrollbar { width: 8px; height: 8px; }
+    .canvas-area::-webkit-scrollbar-track { background: var(--bg); }
+    .canvas-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .page-list::-webkit-scrollbar { width: 6px; }
+    .page-list::-webkit-scrollbar-track { background: transparent; }
+    .page-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Export PDF ── */
+    .btn-export { background: #2e7d32; color: #fff; border-color: #2e7d32; position: relative; }
+    .btn-export:hover:not(:disabled) { background: #1b5e20; border-color: #1b5e20; }
+    .btn-export:disabled { opacity: 0.45; cursor: not-allowed; }
+    .export-menu {
+      display: none; position: absolute; top: calc(100% + 6px); right: 0;
+      background: #fff; border: 1.5px solid var(--border); border-radius: 10px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.13); z-index: 9999;
+      min-width: 210px; overflow: hidden;
+    }
+    .export-menu.open { display: block; }
+    .export-menu-label { padding: 8px 16px 4px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .export-menu-item {
+      display: flex; align-items: center; gap: 10px; padding: 11px 16px;
+      cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text);
+      border: none; background: none; width: 100%; text-align: left;
+      font-family: inherit; transition: background 0.12s;
+    }
+    .export-menu-item:hover { background: var(--accent-dim); }
+    .export-menu-divider { height: 1px; background: var(--border); }
+
+
+
+    /* ── Annotation note ── */
+    .wt-annotation {
+      position: absolute;
+      z-index: 9000;
+      width: 200px;
+      background: #fff0f3;
+      border: 1.5px solid #f4a7bf;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(180,80,130,0.18), 0 1px 4px rgba(180,80,130,0.10);
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      color: #000000;
+      padding: 8px 10px 10px;
+      cursor: default;
+      min-width: 160px;
+      max-width: 240px;
+      box-sizing: border-box;
+      transition: box-shadow 0.15s;
+      user-select: none;
+    }
+    .wt-annotation:hover { box-shadow: 0 6px 24px rgba(180,80,130,0.26), 0 1px 4px rgba(180,80,130,0.12); }
+    .wt-annotation.collapsed .note-body { display: none; }
+    .wt-annotation.collapsed .note-time { display: none; }
+
+    /* Doodle strawberry header */
+    .note-strawberry {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 5px;
+      line-height: 1;
+    }
+    .note-strawberry svg {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    /* Note action bar */
+    .note-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .note-action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 1px 3px;
+      border-radius: 4px;
+      color: var(--muted);
+      line-height: 1;
+      transition: background 0.12s, color 0.12s;
+      font-family: inherit;
+    }
+    .note-action-btn:hover { background: #fdd3e2; color: var(--accent-dark); }
+
+    /* Note textarea / text */
+    .note-body {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      color: #000000;
+      line-height: 1.55;
+      min-height: 38px;
+      overflow: hidden;
+      display: block;
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .note-body:focus {
+      background: rgba(255,255,255,0.55);
+      border-radius: 5px;
+      padding: 2px 4px;
+    }
+    .note-body::placeholder { color: #d4a0b8; }
+
+    /* Timestamp */
+    .note-time {
+      font-size: 10px;
+      color: #d4a0b8;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    /* Drag handle dot top-left */
+    .note-drag-handle {
+      position: absolute;
+      top: 7px;
+      left: 9px;
+      width: 12px;
+      height: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      cursor: grab;
+      opacity: 0.4;
+    }
+    .note-drag-handle:active { cursor: grabbing; }
+    .note-drag-handle span {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: #d4537e;
+      display: block;
+    }
+
+    /* Overlay kept as inert placeholder — annotation triggers use postMessage */
+    .review-click-overlay { display: none !important; }
+
+    /* Image comment indicator — orange outline on the img inside the iframe */
+    /* (Applied via injected iframe JS, not parent CSS) */
+
+
+
+    /* Sidebar comments panel — always visible */
+    .comments-panel {
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      max-height: 380px;
+      overflow: hidden;
+    }
+    .comments-panel-header {
+      padding: 8px 14px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--surface-mid);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .comments-panel-count {
+      background: #f4a7bf;
+      color: #72243e;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+    .comments-list {
+      overflow-y: auto;
+      flex: 1;
+      padding: 6px;
+    }
+    .comments-list::-webkit-scrollbar { width: 5px; }
+    .comments-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .comment-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      padding: 6px 8px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.1s;
+      font-size: 11px;
+      color: var(--text-mid);
+      line-height: 1.45;
+    }
+    .comment-entry:hover { background: var(--accent-dim); }
+    .comment-entry .ce-page {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .comment-entry .ce-text {
+      flex: 1;
+      word-break: break-word;
+      color: var(--text);
+    }
+    .comments-empty {
+      padding: 12px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+  /* ── Custom delete modal ── */
+  .wt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(180, 80, 120, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    backdrop-filter: blur(1px);
+  }
+  .wt-modal {
+    background: #fff0f3;
+    border: 1.5px solid #f4a7bf;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(180, 80, 120, 0.22), 0 2px 8px rgba(180, 80, 120, 0.12);
+    padding: 28px 32px 24px;
+    min-width: 280px;
+    max-width: 360px;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    color: #000;
+    position: relative;
+    animation: wt-modal-pop 0.15s ease;
+  }
+  @keyframes wt-modal-pop {
+    from { transform: scale(0.92); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+  .wt-modal-berry {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .wt-modal-berry svg { width: 44px; height: 44px; }
+  .wt-modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #000;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    white-space: pre-line;
+  }
+  .wt-modal-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .wt-modal-btn {
+    padding: 8px 28px;
+    border-radius: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid;
+    transition: background 0.13s, border-color 0.13s;
+  }
+  .wt-modal-btn-yes {
+    background: #d4537e;
+    border-color: #d4537e;
+    color: #fff;
+  }
+  .wt-modal-btn-yes:hover { background: #993556; border-color: #993556; }
+  .wt-modal-btn-no {
+    background: #fff;
+    border-color: #f4a7bf;
+    color: #993556;
+  }
+  .wt-modal-btn-no:hover { background: #fbe4ed; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Toolbar -->
+  <header class="toolbar">
+    <span class="toolbar-brand">˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆ Worktext Studio ˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆</span>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-primary" id="btn-open" title="Pick your worktext HTML file — gets a live handle so Ctrl+S in VS Code is picked up automatically">
+      📄 Open HTML File
+    </button>
+    <label class="btn" id="btn-open-images" style="cursor:pointer;" title="Pick the folder containing your images (optional)">
+      🖼 Images Folder
+      <input type="file" id="folder-input" webkitdirectory multiple style="display:none;" />
+    </label>
+    <button class="btn" id="btn-refresh" disabled>🔄 Refresh</button>
+    <div class="toolbar-divider"></div>
+    <div class="renderer-wrap">
+      <label for="renderer-select">Renderer</label>
+      <select id="renderer-select">
+        <option value="sk">SK (Kindergarten)</option>
+        <option value="ak">AK / S1 / S2 / M1 / M2 / F1 / F2 / E1</option>
+        <option value="mk">MK-U1-C1</option>
+      </select>
+    </div>
+    <div class="toolbar-divider"></div>
+    <button class="btn" id="btn-pdf-mode" title="Toggle PDF simulation (applies renderer font/image overrides and corrects mm units)">
+      🖨 PDF Sim: OFF
+    </button>
+
+    <div class="toolbar-divider"></div>
+    <button class="btn" id="btn-save-reviewed" title="Save a reviewed HTML file with all annotation data embedded" disabled>
+      💾 Save Reviewed HTML
+    </button>
+    <div class="toolbar-divider"></div>
+    <div style="position:relative;">
+      <button class="btn btn-export" id="btn-export" disabled>📥 Export PDF ▾</button>
+      <div class="export-menu" id="export-menu">
+        <div class="export-menu-label">Export options</div>
+        <button class="export-menu-item" id="export-all">
+          📄 All Pages
+          <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-all-count"></span>
+        </button>
+        <div class="export-menu-divider"></div>
+        <button class="export-menu-item" id="export-current">
+          🔖 Current Page Only
+          <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-current-num"></span>
+        </button>
+      </div>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <span class="status-pill" id="status-pill">
+      <span class="dot"></span>No file loaded
+    </span>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">File</div>
+      <div class="file-card" id="file-card">
+        <div style="color:var(--muted);font-size:12px;">
+          No file loaded yet.<br>Click "Open Folder" and select the folder containing your worktext HTML.
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Summary</div>
+      <div class="stat-row">
+        <span class="label">Pages</span>
+        <span class="value" id="stat-pages">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">Overflow</span>
+        <span class="value" id="stat-overflow">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">Renderer</span>
+        <span class="value" id="stat-renderer">SK</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">PDF Sim</span>
+        <span class="value" id="stat-pdf-sim">Off</span>
+      </div>
+      <div class="stat-row">
+        <span class="label">Watching</span>
+        <span class="value" id="stat-watch">—</span>
+      </div>
+    </div>
+
+    <div id="mode-info-wrap"></div>
+
+    <div class="sidebar-label" style="padding:10px 14px 4px;">Pages</div>
+    <div class="page-list" id="page-list">
+      <div style="padding:8px 10px;color:var(--muted);font-size:12px;">No pages yet.</div>
+    </div>
+
+    <!-- Comments panel -->
+    <div class="comments-panel" id="comments-panel">
+      <div class="comments-panel-header">
+        🍓 Review Comments
+        <span class="comments-panel-count" id="comments-panel-count">0</span>
+      </div>
+      <div class="comments-list" id="comments-list">
+        <div class="comments-empty">No comments yet.<br>Highlight text or click an image to add a comment.</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Canvas -->
+  <main class="canvas-area" id="canvas-area">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">📄</div>
+      <h2>No file loaded</h2>
+      <p>Click <strong>Open HTML File</strong> to select your worktext HTML. The preview will live-update every time you save in VS Code.</p>
+      <button class="btn btn-primary" onclick="document.getElementById('btn-open').click()">
+        📄 Open HTML File
+      </button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let currentPages      = [];
+let folderHandle      = null;
+let currentHtmlHandle = null;
+let currentHtmlName   = null;
+let watchInterval     = null;
+let lastHtmlContent   = null;
+let pdfSimMode        = false;   // Whether PDF simulation overrides are active
+let currentRenderer   = 'sk';   // 'sk' | 'ak' | 'mk'
+let imgMaxH           = 500;    // Max image height cap in px (mirrors render script setting)
+
+// ─────────────────────────────────────────────
+//  PDF SIMULATION CSS
+//
+//  The core problem: Puppeteer's print path renders CSS `mm` and `in`
+//  units at ~56% of their nominal screen size. The renderer scripts work
+//  around this for margins by using vw/vh, but source HTML still uses mm
+//  for draw boxes, fill spans, and table cell heights.
+//
+//  This shim converts all mm-based sizes to their PDF-equivalent px values
+//  and applies the same font/image overrides the render scripts inject.
+//
+//  Conversion: 1mm = (96/25.4) * 0.56 ≈ 2.117px in Puppeteer PDF output
+//  (empirically derived from the ~56% print-path DPI scaling noted in the
+//  renderer prompt).
+//
+//  Renderer-specific overrides are in PDF_OVERRIDES_BY_RENDERER below.
+// ─────────────────────────────────────────────
+
+// mm → PDF-equivalent px
+// The 56% DPI bug only affects margin/padding in `in` units (why renderer uses vw/vh).
+// Element sizing (min-height, width) in mm renders at full 96dpi — scale factor is 1.0.
+function mmToPx(mm) { return Math.round(mm * 96 / 25.4); }
+
+// Common print-path overrides (all renderers)
+const PDF_COMMON_CSS = `
+  /* ── Color theme: all vars desaturated ~20% HSL (renderer prompt spec) ── */
+  /* --ink is forced to #1a1a1a; theme accent vars desaturated ~20% */
+  :root {
+    --ink: #1a1a1a !important;
+    --blue:      #2260a8 !important;
+    --blue-lt:   #ddeefa !important;
+    --blue-bd:   #85bce8 !important;
+    --green:     #296b2c !important;
+    --green-lt:  #e0f0e1 !important;
+    --green-bd:  #8ec990 !important;
+    --amber:     #c45808 !important;
+    --amber-lt:  #fdf3e3 !important;
+    --amber-bd:  #e8c96a !important;
+    --purple:    #5c1882 !important;
+    --purple-lt: #ede0f5 !important;
+    --purple-bd: #b87acc !important;
+    --teal:      #005a4f !important;
+    --teal-lt:   #d9eeec !important;
+    --teal-bd:   #68b0aa !important;
+    --rose:      #750d42 !important;
+    --rose-lt:   #f7dcea !important;
+    --rose-bd:   #d975a4 !important;
+  }
+
+  /* ── Image cap (global default; per-class overrides below always win) ── */
+  img { max-height: var(--img-max-h, 500px) !important; max-width: 100% !important;
+        object-fit: contain !important; display: block !important; }
+  /* Per-image size classes — defined AFTER the global cap so they win the cascade.
+     Set on <img> in source HTML. Works in screen mode AND PDF sim mode.
+     img-sm=300px  img-md=500px  img-lg=700px  img-xl=900px  img-full=no cap */
+  img.img-sm   { max-height: 300px !important; }
+  img.img-md   { max-height: 500px !important; }
+  img.img-lg   { max-height: 700px !important; }
+  img.img-xl   { max-height: 900px !important; }
+  img.img-full { max-height: none !important; }
+
+  /* ── Overflow hidden (print media override) ── */
+  * { overflow: hidden !important; }
+  .page { overflow: hidden !important; }
+
+  /* ── STEP 0: remove page numbers ── */
+  .pgnum { display: none !important; }
+
+  /* ── Typography — exact values from renderer print spec ── */
+  .sec-banner .sec-label, .act-h, .doc-title { font-size: 30px !important; line-height: 1.5 !important; }
+  .hdr-title { font-size: 18px !important; font-weight: 800 !important; }
+  .hdr-sub   { font-size: 15px !important; font-weight: 500 !important; }
+  .hdr-right, .hdr-r { font-size: 15px !important; line-height: 2.1 !important; white-space: normal !important; }
+  .body-p, p, li { font-size: 25px !important; line-height: 1.5 !important; color: #1a1a1a !important; }
+  .obj-box, .obj-box p, .obj-box li, .obj-box div,
+  .eq-box,  .eq-box p,  .eq-box li,  .eq-box div,
+  .mat-box, .mat-box p, .mat-box li, .mat-box div { font-size: 22px !important; }
+  .eq-text, .eq-text * { font-weight: 400 !important; }
+  .eq-label             { font-weight: 800 !important; }
+
+  /* ── mm → PDF-px: draw/observation boxes ── */
+  /* These class names plus inline min-height:Xmm are used in source HTML */
+  .draw-sm  { min-height: ${mmToPx(42)}px !important; }
+  .draw-md  { min-height: ${mmToPx(56)}px !important; }
+  .draw-lg  { min-height: ${mmToPx(70)}px !important; }
+  .draw-xl  { min-height: ${mmToPx(90)}px !important; }
+  .draw-2col .dc { min-height: ${mmToPx(50)}px !important; }
+  .draw-3col .dc { min-height: ${mmToPx(42)}px !important; }
+  .obs-2col  .oc { min-height: ${mmToPx(44)}px !important; }
+
+  /* ── .db (inline draw box) — full size list ── */
+  .db[style*="20mm"]  { min-height: ${mmToPx(20)}px !important; }
+  .db[style*="22mm"]  { min-height: ${mmToPx(22)}px !important; }
+  .db[style*="25mm"]  { min-height: ${mmToPx(25)}px !important; }
+  .db[style*="28mm"]  { min-height: ${mmToPx(28)}px !important; }
+  .db[style*="30mm"]  { min-height: ${mmToPx(30)}px !important; }
+  .db[style*="32mm"]  { min-height: ${mmToPx(32)}px !important; }
+  .db[style*="35mm"]  { min-height: ${mmToPx(35)}px !important; }
+  .db[style*="38mm"]  { min-height: ${mmToPx(38)}px !important; }
+  .db[style*="40mm"]  { min-height: ${mmToPx(40)}px !important; }
+  .db[style*="42mm"]  { min-height: ${mmToPx(42)}px !important; }
+  .db[style*="44mm"]  { min-height: ${mmToPx(44)}px !important; }
+  .db[style*="45mm"]  { min-height: ${mmToPx(45)}px !important; }
+  .db[style*="48mm"]  { min-height: ${mmToPx(48)}px !important; }
+  .db[style*="50mm"]  { min-height: ${mmToPx(50)}px !important; }
+  .db[style*="52mm"]  { min-height: ${mmToPx(52)}px !important; }
+  .db[style*="55mm"]  { min-height: ${mmToPx(55)}px !important; }
+  .db[style*="56mm"]  { min-height: ${mmToPx(56)}px !important; }
+  .db[style*="60mm"]  { min-height: ${mmToPx(60)}px !important; }
+  .db[style*="65mm"]  { min-height: ${mmToPx(65)}px !important; }
+  .db[style*="70mm"]  { min-height: ${mmToPx(70)}px !important; }
+  .db[style*="75mm"]  { min-height: ${mmToPx(75)}px !important; }
+  .db[style*="80mm"]  { min-height: ${mmToPx(80)}px !important; }
+  .db[style*="85mm"]  { min-height: ${mmToPx(85)}px !important; }
+  .db[style*="90mm"]  { min-height: ${mmToPx(90)}px !important; }
+  .db[style*="95mm"]  { min-height: ${mmToPx(95)}px !important; }
+  .db[style*="100mm"] { min-height: ${mmToPx(100)}px !important; }
+  .db[style*="110mm"] { min-height: ${mmToPx(110)}px !important; }
+  .db[style*="120mm"] { min-height: ${mmToPx(120)}px !important; }
+
+  /* ── .j-green inner .db (journal card) ── */
+  .j-green .db { min-height: ${mmToPx(100)}px !important; }
+
+  /* ── fill spans: inline-block answer lines (40mm / 160mm) ── */
+  .fill[style*="40mm"]  { min-width: ${mmToPx(40)}px !important; }
+  .fill[style*="160mm"] { min-width: ${mmToPx(160)}px !important; }
+  [style*="width: 40mm"]   { width: ${mmToPx(40)}px !important; }
+  [style*="width: 160mm"]  { width: ${mmToPx(160)}px !important; }
+  [style*="width:40mm"]    { width: ${mmToPx(40)}px !important; }
+  [style*="width:160mm"]   { width: ${mmToPx(160)}px !important; }
+
+  /* ── wt table cells ── */
+  .wt td    { min-height: ${mmToPx(52)}px !important; }
+  .wt-sm td { min-height: ${mmToPx(36)}px !important; }
+
+  /* ── title-bar (60mm wide) ── */
+  .title-bar { width: ${mmToPx(60)}px !important; }
+
+  /* ── Bullet & numbered lists — mirror the renderer's inside-positioning fix ──
+     Source HTML uses list-style-position:outside which Puppeteer clips.
+     The renderer forces inside + hanging indent on all lists so they show correctly.
+     Do the same here so inspector (PDF Sim ON) matches the exported PDF exactly. */
+  ul li {
+    list-style-type: disc !important;
+    list-style-position: inside !important;
+    text-indent: -1.2em !important;
+    padding-left: 1.2em !important;
+  }
+  ol li {
+    list-style-type: decimal !important;
+    list-style-position: inside !important;
+    text-indent: -1.2em !important;
+    padding-left: 1.2em !important;
+  }
+
+  /* ── Image centering: mirrors Puppeteer print-path behaviour ── */
+  /* In the print path, display:block + margin:auto on img doesn't always resolve
+     to centered when the parent width isn't explicitly set. Force flex centering
+     on .img-block containers, and ensure standalone imgs are block-centered. */
+  .img-block {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  .img-block img {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  img {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+`;
+
+// SK-specific overrides (from render_sk.js)
+const PDF_SK_CSS = `
+  /* SK intro box font reduction */
+  .obj-box h3, .mat-box h3 { font-size: 15px !important; }
+  .eq-box .eq-label         { font-size: 15px !important; }
+  .obj-box li, .obj-box p, .obj-box div,
+  .mat-box li, .mat-box p, .mat-box div { font-size: 13px !important; line-height: 1.5 !important; }
+  .eq-text, .eq-text *      { font-size: 13px !important; font-weight: 400 !important; }
+  .eq-label                 { font-weight: 800 !important; }
+
+  /* Conditional bullets (multi-item disc; single-item suppressed) */
+  /* list-style-position:inside mirrors Puppeteer PDF behaviour — outside markers are clipped in print path */
+  .obj-box ul li, .mat-box ul li {
+    list-style-type: disc !important;
+    list-style-position: inside !important;
+    text-indent: -1em !important;
+    padding-left: 1.5em !important;
+  }
+  .obj-box ul li:only-child,
+  .mat-box ul li:only-child {
+    list-style-type: none !important;
+    text-indent: 0 !important;
+    padding-left: 0 !important;
+  }
+`;
+
+// AK-specific overrides (from render_ak.js)
+const PDF_AK_CSS = `
+  /* AK intro box font reduction (ci-obj/ci-eq/ci-mat h4 → 15px) */
+  .ci-obj h4, .ci-eq h4, .ci-mat h4 { font-size: 15px !important; }
+  .ci-obj .body-p, .ci-obj li,
+  .ci-eq  .body-p, .ci-eq  li,
+  .ci-mat .body-p, .ci-mat li { font-size: 13px !important; }
+  .obj-box ul li, .mat-box ul li {
+    list-style-type: disc !important;
+    list-style-position: inside !important;
+    text-indent: -1em !important;
+    padding-left: 1.5em !important;
+  }
+  .obj-box ul li:only-child,
+  .mat-box ul li:only-child {
+    list-style-type: none !important;
+    text-indent: 0 !important;
+    padding-left: 0 !important;
+  }
+`;
+
+// MK-specific overrides (from render_mk.js, same intro reduction as AK plus mk-options)
+const PDF_MK_CSS = PDF_AK_CSS + `
+  .mk-options { text-align: center !important; }
+  ol.q-list   { list-style-type: decimal !important; list-style-position: inside !important; }
+`;
+
+function getPdfSimCSS(renderer) {
+  const specific = renderer === 'sk' ? PDF_SK_CSS
+                 : renderer === 'mk' ? PDF_MK_CSS
+                 : PDF_AK_CSS;
+  const imgCapPx = imgMaxH >= 99999 ? 'none' : `${imgMaxH}px`;
+  return `<style id="pdf-sim-shim">
+/* === PDF SIMULATION SHIM (Worktext Inspector) ===
+   Converts mm-based sizes to PDF-equivalent px values and applies
+   the same overrides the Puppeteer render script injects.
+   Scale factor: ~56% (Puppeteer print-path DPI behaviour).
+   Toggle off with "PDF Sim" button to see raw browser rendering. */
+:root { --img-max-h: ${imgCapPx}; }
+${PDF_COMMON_CSS}
+${specific}
+</style>`;
+}
+
+// ─────────────────────────────────────────────
+//  JS-DRIVEN mm INLINE STYLE FIX
+//  Some elements use inline style="min-height:Xmm" directly.
+//  CSS attribute selectors handle the common cases above, but
+//  for arbitrary values we walk the DOM after the iframe loads
+//  and patch any remaining mm values.
+// ─────────────────────────────────────────────
+function patchInlineMm(iDoc) {
+  const MM_SCALE = 96 / 25.4;      // element mm sizing renders at full 96dpi
+  const IN_SCALE = 96 * 0.56;      // inline `in` values may be margin/padding — apply 56%
+  const MM_RE = /([\d.]+)\s*mm/g;
+  const IN_RE = /([\d.]+)\s*in\b/g;
+
+  iDoc.querySelectorAll('[style]').forEach(el => {
+    // Never touch <img> inline styles — source-defined image sizes must be preserved exactly.
+    // The PDF Sim cap is applied via CSS class rules, not by mutating inline styles.
+    if (el.tagName === 'IMG') return;
+
+    let style = el.getAttribute('style');
+    if (!style.includes('mm') && !style.includes('in')) return;
+    let newStyle = style;
+    if (newStyle.includes('mm'))
+      newStyle = newStyle.replace(MM_RE, (_, n) => `${Math.round(parseFloat(n) * MM_SCALE)}px`);
+    if (newStyle.includes('in'))
+      newStyle = newStyle.replace(IN_RE, (_, n) => `${Math.round(parseFloat(n) * IN_SCALE)}px`);
+    if (newStyle !== style) el.setAttribute('style', newStyle);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  OPEN HTML FILE — uses showOpenFilePicker for a LIVE file handle.
+//  Every getFile() call on a FileSystemFileHandle reads fresh bytes
+//  from disk, so Ctrl+S in VS Code is picked up by the watcher.
+// ─────────────────────────────────────────────
+document.getElementById('btn-open').addEventListener('click', async () => {
+  // Fallback: if File System Access API not available, use input picker
+  if (!window.showOpenFilePicker) {
+    alert('Your browser does not support the File System Access API.\n\nUse Chrome or Edge for live file watching.\n\nFalling back to snapshot mode — use the Refresh button after each save.');
+    useFallbackFilePicker();
+    return;
+  }
+
+  let fileHandle;
+  try {
+    [fileHandle] = await window.showOpenFilePicker({
+      types: [{ description: 'HTML files', accept: { 'text/html': ['.html', '.htm'] } }],
+      multiple: false
+    });
+  } catch (e) {
+    return; // user cancelled
+  }
+
+  await openHtmlFileHandle(fileHandle);
+});
+
+// Called with a live FileSystemFileHandle (showOpenFilePicker path)
+async function openHtmlFileHandle(fileHandle) {
+  const file = await fileHandle.getFile();
+  autoDetectRenderer(file.name);
+  currentHtmlName   = file.name;
+  // Wrap in object with same interface as before
+  currentHtmlHandle = { getFile: () => fileHandle.getFile(), name: file.name };
+  lastHtmlContent   = await file.text();
+  // ── Bug 1 fix: clear any annotations from the previously loaded lesson
+  //    before rendering so reattachAnnotations starts with a clean slate.
+  //    loadEmbeddedComments (called in the patched wrapper below) will
+  //    repopulate from the new file's embedded data if present.
+  annotations = [];
+  annotIdSeq  = 0;
+  document.querySelectorAll('.wt-annotation').forEach(el => el.remove());
+  refreshCommentsSidebar();
+  // ──
+  await loadAndRender();
+  startWatching();
+  document.getElementById('btn-refresh').disabled = false;
+}
+
+// ─────────────────────────────────────────────
+//  FALLBACK: snapshot file input (no live watching)
+// ─────────────────────────────────────────────
+function useFallbackFilePicker() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.html,.htm';
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) return;
+    autoDetectRenderer(file.name);
+    currentHtmlName   = file.name;
+    currentHtmlHandle = { getFile: () => Promise.resolve(file), name: file.name };
+    lastHtmlContent   = await file.text();
+    // ── Bug 1 fix: clear annotations from previous lesson
+    annotations = [];
+    annotIdSeq  = 0;
+    document.querySelectorAll('.wt-annotation').forEach(el => el.remove());
+    refreshCommentsSidebar();
+    // ──
+    await loadAndRender();
+    loadEmbeddedComments(lastHtmlContent);
+    // No live watching in fallback — manual refresh only
+    setWatchStatus('stopped');
+    document.getElementById('btn-refresh').disabled = false;
+    document.getElementById('stat-watch').textContent = 'Manual only';
+    document.getElementById('stat-watch').className = 'value warn';
+  });
+  input.click();
+}
+
+// ─────────────────────────────────────────────
+//  IMAGES FOLDER — separate folder picker for image assets.
+//  Still uses webkitdirectory input (images don't need live watching).
+// ─────────────────────────────────────────────
+let fileMap = {};
+
+document.getElementById('folder-input').addEventListener('change', async (e) => {
+  const allFiles = Array.from(e.target.files);
+  fileMap = {};
+  for (const f of allFiles) {
+    const rel    = f.webkitRelativePath || f.name;
+    const parts  = rel.split('/');
+    const noRoot = parts.slice(1).join('/');
+    fileMap[noRoot] = f;
+    fileMap[rel]    = f;
+    fileMap[f.name] = f;
+  }
+  // Re-render so images resolve with the new map
+  if (currentHtmlHandle) {
+    setWatchStatus('updating');
+    await loadAndRender();
+    setWatchStatus('active');
+  }
+});
+
+function autoDetectRenderer(name) {
+  const n = name.toUpperCase();
+  if (n.startsWith('SK-')) {
+    document.getElementById('renderer-select').value = 'sk';
+    currentRenderer = 'sk';
+  } else if (n.match(/^MK-U1-C1-/)) {
+    document.getElementById('renderer-select').value = 'mk';
+    currentRenderer = 'mk';
+  } else {
+    document.getElementById('renderer-select').value = 'ak';
+    currentRenderer = 'ak';
+  }
+  updateRendererStat();
+}
+
+// ─────────────────────────────────────────────
+//  PICKER DIALOG
+// ─────────────────────────────────────────────
+function showPicker(title, options) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position:fixed;inset:0;background:rgba(180,80,120,0.18);
+      display:flex;align-items:center;justify-content:center;z-index:1000;
+    `;
+    const box = document.createElement('div');
+    box.style.cssText = `
+      background:#fff;border:1px solid #f4c0d1;border-radius:12px;
+      padding:24px;min-width:320px;max-width:480px;
+      font-family:'Nunito',system-ui,sans-serif;
+      box-shadow:0 8px 32px rgba(180,80,120,0.18);
+    `;
+    box.innerHTML = `
+      <div style="font-size:14px;font-weight:700;color:#72243e;margin-bottom:16px;">${title}</div>
+      <div id="picker-list" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;"></div>
+      <div style="margin-top:16px;text-align:right;">
+        <button id="picker-cancel" style="
+          padding:5px 14px;border-radius:6px;border:1px solid #f4c0d1;
+          background:#fff;color:#993556;font-size:13px;cursor:pointer;
+          font-family:'Nunito',system-ui,sans-serif;
+        ">Cancel</button>
+      </div>
+    `;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    const list = box.querySelector('#picker-list');
+    options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = opt;
+      btn.style.cssText = `
+        text-align:left;padding:8px 12px;border-radius:6px;
+        border:1px solid #f4c0d1;background:#fdf0f4;
+        color:#72243e;font-size:13px;cursor:pointer;width:100%;
+        font-family:'Nunito',system-ui,sans-serif;
+      `;
+      btn.addEventListener('mouseenter', () => btn.style.background = '#fbe4ed');
+      btn.addEventListener('mouseleave', () => btn.style.background = '#fdf0f4');
+      btn.addEventListener('click', () => { document.body.removeChild(overlay); resolve(i); });
+      list.appendChild(btn);
+    });
+    box.querySelector('#picker-cancel').addEventListener('click', () => {
+      document.body.removeChild(overlay); resolve(null);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
+//  LOAD AND RENDER
+//  Always uses lastHtmlContent as the source of truth.
+//  lastHtmlContent is set on first load and updated by the watcher
+//  every time the file changes on disk — so this always renders
+//  the latest saved version of the file.
+// ─────────────────────────────────────────────
+async function loadAndRender() {
+  if (!lastHtmlContent) return;
+  const rawHtml = lastHtmlContent;
+  const parser  = new DOMParser();
+  const doc     = parser.parseFromString(rawHtml, 'text/html');
+
+  const headStyles    = Array.from(
+    doc.querySelectorAll('head style, head link[rel="stylesheet"]')
+  ).map(el => el.outerHTML).join('\n');
+
+  const trailingStyles = extractTrailingStyles(rawHtml);
+  const imageMap       = await buildImageMap(rawHtml);
+  const pageDivs       = Array.from(doc.querySelectorAll('.page'));
+
+  if (pageDivs.length === 0) {
+    alert('No .page elements found in this HTML file.\n\nMake sure your worktext HTML uses <div class="page"> for each page.');
+    return;
+  }
+
+  // PDF sim CSS to inject (blank if sim mode is off)
+  const pdfSimHtml = pdfSimMode ? getPdfSimCSS(currentRenderer) : '';
+
+  // Neutralize the trailing-style first-child header rule.
+  // The source uses `.page:first-child .hdr { display:none }` to hide the
+  // header on the cover page. When we split pages into individual iframes
+  // each page div IS the first-child, so this rule incorrectly fires on
+  // every page. We strip it here and re-apply it only for page index 0.
+  const trailingStylesFixed = trailingStyles
+    .replace(/\.page:first-child\s+\.hdr\s*\{[^}]*\}/g, '/* [inspector: moved to per-page] */');
+
+  // Pull the source's page 0 header HTML so we can clone it onto split pages
+  // that the renderer's STEP 3 would inject (pages created by height/activity splits).
+  // For the base source pages this isn't needed, but it keeps the logic correct.
+  const page0HdrHtml = (() => {
+    const hdr = pageDivs[0] && pageDivs[0].querySelector('.hdr');
+    return hdr ? hdr.outerHTML : '';
+  })();
+
+  currentPages = pageDivs.map((pageDiv, pageIndex) => {
+    let pageHtml = pageDiv.outerHTML;
+    for (const [relPath, blobUrl] of Object.entries(imageMap)) {
+      const escaped = relPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      pageHtml = pageHtml.replace(new RegExp(escaped, 'g'), blobUrl);
+    }
+
+    // Per-page header overrides that mirror the renderer pipeline:
+    //   • Page 0  : hide .hdr (cover page has no running header)
+    //   • Pages 1+: show .hdr, clear .hdr-right / .hdr-r (STEP 6)
+    //               .hdr-sub is always hidden (source trailing style)
+    const pageHeaderCSS = pageIndex === 0
+      ? `<style>/* STEP 0 cover: no running header */
+           .hdr { display: none !important; }
+         </style>`
+      : `<style>/* Pages 2+: show header, clear name/date/score (mirrors STEP 6 innerHTML='') */
+           .hdr { display: flex !important; }
+           .hdr-right, .hdr-r { font-size:0 !important; width:0 !important;
+             min-width:0 !important; overflow:hidden !important;
+             padding:0 !important; margin:0 !important; border:none !important; }
+         </style>`;
+
+    const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+${headStyles}
+<style>
+  /* Inspector base overrides */
+  html, body {
+    margin: 0; padding: 0;
+    width: 816px;
+    background: #fff;
+    overflow: visible;
+  }
+  .page {
+    width: 816px !important;
+    min-height: unset !important;
+    margin: 0 !important;
+    padding: 3.636vh 5.882vw 3.636vh 9.412vw !important;
+    box-shadow: none !important;
+    page-break-after: unset !important;
+  }
+  /* Prevent flex container from squashing draw boxes below their min-height */
+  .db, .draw-box, .draw-sm, .draw-md, .draw-lg, .draw-xl,
+  .draw-2col, .draw-3col, .obs-2col { flex-shrink: 0 !important; }
+  /* Image size class overrides — always active (screen + PDF sim).
+     Set on <img> in source HTML to break the global cap.            */
+  img.img-sm   { max-height: 300px !important; }
+  img.img-md   { max-height: 500px !important; }
+  img.img-lg   { max-height: 700px !important; }
+  img.img-xl   { max-height: 900px !important; }
+  img.img-full { max-height: none !important; }
+  @media print { * { overflow: visible !important; } }
+</style>
+${trailingStylesFixed}
+${pageHeaderCSS}
+${pdfSimHtml}
+</head>
+<body>${pageHtml}</body>
+</html>`;
+
+    return { html: fullHtml, overflows: false };
+  });
+
+  renderCanvas(currentHtmlName, currentPages);
+}
+
+// ─────────────────────────────────────────────
+//  EXTRACT TRAILING STYLES
+// ─────────────────────────────────────────────
+function extractTrailingStyles(rawHtml) {
+  const lastHtml = rawHtml.lastIndexOf('</html>');
+  if (lastHtml === -1) return '';
+  const trailing = rawHtml.slice(lastHtml + 7);
+  const styleMatches = trailing.match(/<style[\s\S]*?<\/style>/gi);
+  return styleMatches ? styleMatches.join('\n') : '';
+}
+
+// ─────────────────────────────────────────────
+//  RENDER CANVAS
+// ─────────────────────────────────────────────
+function renderCanvas(fileName, pages) {
+  const canvas = document.getElementById('canvas-area');
+  canvas.innerHTML = '';
+
+  pages.forEach((page, i) => {
+    const label = `Page ${i + 1}`;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'page-frame-wrapper';
+    wrapper.id = `wrapper-${i}`;
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'page-label';
+    labelEl.id = `label-${i}`;
+    labelEl.dataset.name = label;
+    labelEl.textContent = label;
+    wrapper.appendChild(labelEl);
+
+    const frame = document.createElement('div');
+    frame.className = 'page-frame';
+    frame.id = `frame-${i}`;
+
+    const marginGuide = document.createElement('div');
+    marginGuide.className = 'margin-guide';
+    frame.appendChild(marginGuide);
+
+    const ceiling = document.createElement('div');
+    ceiling.className = 'ceiling-line';
+    frame.appendChild(ceiling);
+
+    const ceilingLbl = document.createElement('div');
+    ceilingLbl.className = 'ceiling-label';
+    ceilingLbl.textContent = '990px ceiling';
+    frame.appendChild(ceilingLbl);
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'page-iframe';
+    iframe.id = `iframe-${i}`;
+    iframe.srcdoc = page.html;
+    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+    iframe.addEventListener('load', () => {
+      // Always patch inline mm/in values — needed in all modes for accurate height measurements
+      try { patchInlineMm(iframe.contentDocument); } catch(e) {}
+      checkOverflow(i, iframe, frame, labelEl);
+      // Inject review script now that the iframe document is ready
+      injectReviewScriptIntoIframe(iframe, i);
+    });
+
+    frame.appendChild(iframe);
+
+    // Inert overlay placeholder — annotation triggers use postMessage from iframe
+    const overlay = document.createElement('div');
+    overlay.className = 'review-click-overlay';
+    overlay.id = `overlay-${i}`;
+    frame.appendChild(overlay);
+
+    wrapper.appendChild(frame);
+    canvas.appendChild(wrapper);
+  });
+
+  updateSidebar(fileName, pages.length);
+}
+
+// ─────────────────────────────────────────────
+//  BUILD IMAGE MAP
+// ─────────────────────────────────────────────
+async function buildImageMap(rawHtml) {
+  const map = {};
+  const srcPaths = [];
+  for (const match of rawHtml.matchAll(/src="([^"]+)"/g)) {
+    const p = match[1];
+    if (!p.startsWith('http') && !p.startsWith('data:')) srcPaths.push(p);
+  }
+  for (const relPath of srcPaths) {
+    const file = fileMap[relPath] || fileMap[relPath.split('/').pop()];
+    if (file) map[relPath] = URL.createObjectURL(file);
+  }
+  return map;
+}
+
+// ─────────────────────────────────────────────
+//  CHECK OVERFLOW
+// ─────────────────────────────────────────────
+function checkOverflow(index, iframe, frame, labelEl) {
+  try {
+    const iDoc = iframe.contentDocument;
+    if (!iDoc || !iDoc.body) return;
+
+    const images = Array.from(iDoc.querySelectorAll('img'));
+    const imagePromises = images.map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(res => {
+        img.addEventListener('load',  res, { once: true });
+        img.addEventListener('error', res, { once: true });
+      });
+    });
+
+    const fontPromise = iDoc.fonts ? iDoc.fonts.ready : Promise.resolve();
+
+    Promise.all([...imagePromises, fontPromise]).then(() => {
+      measureAndFlag(index, iDoc.body, frame, labelEl);
+    });
+  } catch { /* iframe not accessible */ }
+}
+
+function measureAndFlag(index, body, frame, labelEl) {
+  const CEILING  = 990;
+  // Match exactly what render_ak.js STEP 2 measures: the .page div scrollHeight
+  const pageEl   = body.querySelector('.page') || body;
+  const contentH = pageEl.scrollHeight;
+  const overflows = contentH > CEILING;
+  const overBy    = overflows ? contentH - CEILING : 0;
+
+  currentPages[index].overflows = overflows;
+  currentPages[index].height    = contentH;
+
+  frame.classList.toggle('overflow', overflows);
+
+  labelEl.innerHTML = '';
+
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'page-name';
+  nameSpan.textContent = labelEl.dataset.name || `Page ${index + 1}`;
+  labelEl.appendChild(nameSpan);
+
+  if (pdfSimMode) {
+    const simBadge = document.createElement('span');
+    simBadge.className = 'sim-badge';
+    simBadge.textContent = '🖨 PDF Sim';
+    labelEl.appendChild(simBadge);
+  }
+
+  const readout = document.createElement('span');
+  readout.className = 'height-readout' + (overflows ? ' over' : '');
+  readout.textContent = overflows ? `${contentH}px (+${overBy} over)` : `${contentH}px`;
+  labelEl.appendChild(readout);
+
+  if (overflows) {
+    const badge = document.createElement('span');
+    badge.className = 'overflow-badge';
+    badge.textContent = '⚠ Overflow';
+    labelEl.appendChild(badge);
+  }
+
+  refreshSidebarStats();
+}
+
+// ─────────────────────────────────────────────
+//  SIDEBAR
+// ─────────────────────────────────────────────
+function updateSidebar(fileName, pageCount) {
+  document.getElementById('file-card').innerHTML = `
+    <div class="file-name">${fileName}</div>
+    <div>${pageCount} page${pageCount !== 1 ? 's' : ''} found</div>
+  `;
+  document.getElementById('stat-pages').textContent = pageCount;
+  document.getElementById('stat-watch').textContent = 'Starting…';
+  document.getElementById('stat-watch').className = 'value';
+
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ok';
+  pill.innerHTML = '<span class="dot"></span> Loaded';
+
+  document.getElementById('btn-refresh').disabled = false;
+  updateExportBtn(); // enable export only if PDF Sim is also ON
+  updateRendererStat();
+  updateModeInfo();
+  buildPageList(pageCount);
+  refreshSidebarStats();
+}
+
+function buildPageList(pageCount) {
+  const list = document.getElementById('page-list');
+  list.innerHTML = '';
+  for (let i = 0; i < pageCount; i++) {
+    const name = `Page ${i + 1}`;
+    const item = document.createElement('div');
+    item.className = 'page-list-item';
+    item.id = `list-item-${i}`;
+    item.innerHTML = `
+      <div class="pg-num" id="pg-num-${i}">${i + 1}</div>
+      <div class="pg-height-bar-wrap">
+        <div class="pg-name-row">
+          <span class="pg-name">${name}</span>
+          <span class="pg-px" id="pg-px-${i}">—</span>
+        </div>
+        <div class="pg-bar-track">
+          <div class="pg-bar-fill" id="pg-bar-${i}" style="width:0%"></div>
+        </div>
+      </div>
+    `;
+    item.addEventListener('click', () => scrollToPage(i));
+    list.appendChild(item);
+  }
+}
+
+function refreshSidebarStats() {
+  const CEILING = 990;
+  const overflowCount = currentPages.filter(p => p.overflows).length;
+
+  const statOverflow = document.getElementById('stat-overflow');
+  if (overflowCount === 0) {
+    statOverflow.textContent = 'None';
+    statOverflow.className = 'value ok';
+  } else {
+    statOverflow.textContent = `${overflowCount} page${overflowCount > 1 ? 's' : ''}`;
+    statOverflow.className = 'value warn';
+  }
+
+  const pill = document.getElementById('status-pill');
+  if (overflowCount > 0) {
+    pill.className = 'status-pill warn';
+    pill.innerHTML = `<span class="dot"></span> ${overflowCount} overflow${overflowCount > 1 ? 's' : ''}`;
+  } else if (currentPages.length > 0) {
+    pill.className = 'status-pill ok';
+    pill.innerHTML = '<span class="dot"></span> All clear';
+  }
+
+  currentPages.forEach((page, i) => {
+    const item  = document.getElementById(`list-item-${i}`);
+    const numEl = document.getElementById(`pg-num-${i}`);
+    const pxEl  = document.getElementById(`pg-px-${i}`);
+    const barEl = document.getElementById(`pg-bar-${i}`);
+    if (!item) return;
+
+    const h = page.height || 0;
+    const over = page.overflows;
+
+    if (h > 0) {
+      pxEl.textContent = `${h}px`;
+      pxEl.className = 'pg-px' + (over ? ' over' : '');
+    }
+
+    barEl.style.width = Math.min((h / CEILING) * 100, 100) + '%';
+    barEl.className = 'pg-bar-fill' + (over ? ' over' : '');
+
+    if (over) {
+      item.classList.add('overflow-item');
+      numEl.style.background = 'var(--warn-dim)';
+      numEl.style.color = 'var(--warn)';
+      if (!item.querySelector('.pg-flag')) {
+        const flag = document.createElement('span');
+        flag.className = 'pg-flag';
+        flag.textContent = '!';
+        item.appendChild(flag);
+      }
+    } else {
+      item.classList.remove('overflow-item');
+      numEl.style.background = '';
+      numEl.style.color = '';
+      const flag = item.querySelector('.pg-flag');
+      if (flag) flag.remove();
+    }
+  });
+}
+
+function updateRendererStat() {
+  const labels = { sk: 'SK (Kinder)', ak: 'AK / General', mk: 'MK-U1-C1' };
+  document.getElementById('stat-renderer').textContent = labels[currentRenderer] || currentRenderer;
+}
+
+function updateModeInfo() {
+  const wrap = document.getElementById('mode-info-wrap');
+  if (!currentHtmlName) { wrap.innerHTML = ''; return; }
+
+  if (pdfSimMode) {
+    wrap.innerHTML = `<div class="mode-info">
+      <strong>🖨 PDF Sim ON</strong><br>
+      mm → PDF-equiv px. Renderer overrides applied.<br>
+      Heights match expected PDF output.
+    </div>`;
+  } else {
+    wrap.innerHTML = `<div class="mode-info raw">
+      <strong>🖥 Screen Mode</strong><br>
+      Raw browser rendering. Save in VS Code → preview updates within ~1s automatically.<br>
+      <span style="font-size:10px;opacity:0.8;">Select text or click an image to comment.</span>
+    </div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PDF SIM TOGGLE
+// ─────────────────────────────────────────────
+document.getElementById('btn-pdf-mode').addEventListener('click', async () => {
+  pdfSimMode = !pdfSimMode;
+  const btn = document.getElementById('btn-pdf-mode');
+  btn.textContent = `🖨 PDF Sim: ${pdfSimMode ? 'ON' : 'OFF'}`;
+  btn.className = pdfSimMode ? 'btn btn-active' : 'btn';
+
+  const simStat = document.getElementById('stat-pdf-sim');
+  simStat.textContent = pdfSimMode ? 'On' : 'Off';
+  simStat.className = pdfSimMode ? 'value ok' : 'value';
+
+  updateModeInfo();
+  updateExportBtn();
+
+  if (currentHtmlHandle) {
+    setWatchStatus('updating');
+    await loadAndRender();
+    setWatchStatus('active');
+  }
+});
+
+// ─────────────────────────────────────────────
+//  RENDERER CHANGE
+// ─────────────────────────────────────────────
+document.getElementById('renderer-select').addEventListener('change', async (e) => {
+  currentRenderer = e.target.value;
+  updateRendererStat();
+  if (currentHtmlHandle) {
+    setWatchStatus('updating');
+    await loadAndRender();
+    setWatchStatus('active');
+  }
+});
+
+// ─────────────────────────────────────────────
+//  SCROLL TO PAGE
+// ─────────────────────────────────────────────
+function scrollToPage(index) {
+  const wrapper = document.getElementById(`wrapper-${index}`);
+  if (wrapper) wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.page-list-item').forEach((el, i) => {
+    el.classList.toggle('active', i === index);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  AUTO-WATCH
+//  Uses the live FileSystemFileHandle — every getFile() returns
+//  fresh bytes from disk, so Ctrl+S in VS Code is detected within 1s.
+// ─────────────────────────────────────────────
+function startWatching() {
+  stopWatching();
+  watchInterval = setInterval(async () => {
+    if (!currentHtmlHandle) return;
+    try {
+      const file         = await currentHtmlHandle.getFile();
+      const freshContent = await file.text();
+      if (freshContent !== lastHtmlContent) {
+        lastHtmlContent = freshContent;
+        setWatchStatus('updating');
+        await loadAndRender();
+        setWatchStatus('active');
+      }
+    } catch {
+      stopWatching();
+      setWatchStatus('stopped');
+    }
+  }, 800);
+  setWatchStatus('active');
+}
+
+function stopWatching() {
+  if (watchInterval) { clearInterval(watchInterval); watchInterval = null; }
+}
+
+function setWatchStatus(state) {
+  const el = document.getElementById('stat-watch');
+  if (state === 'active')   { el.textContent = 'Active';    el.className = 'value ok'; }
+  if (state === 'updating') { el.textContent = 'Updating…'; el.className = 'value'; }
+  if (state === 'stopped')  { el.textContent = 'Stopped';   el.className = 'value warn'; }
+}
+
+// ─────────────────────────────────────────────
+//  MANUAL REFRESH
+// ─────────────────────────────────────────────
+document.getElementById('btn-refresh').addEventListener('click', async () => {
+  if (!currentHtmlHandle) return;
+  setWatchStatus('updating');
+  try {
+    const file = await currentHtmlHandle.getFile();
+    lastHtmlContent = await file.text();
+  } catch(e) {
+    // File handle may have gone stale — render with last known content
+  }
+  await loadAndRender();
+  setWatchStatus('active');
+});
+
+// ─────────────────────────────────────────────
+//  EXPORT PDF
+//  Strategy: convert all images in each iframe to base64 data URLs first,
+//  then collect the full iframe HTML (with embedded images) into a single
+//  popup document and print it. This preserves colors, CSS variables,
+//  and images across the popup window boundary.
+// ─────────────────────────────────────────────
+let currentVisiblePage = 0;
+document.getElementById('canvas-area').addEventListener('scroll', () => {
+  const frames = document.querySelectorAll('.page-frame');
+  let closest = 0, minDist = Infinity;
+  frames.forEach((f, i) => {
+    const rect = f.getBoundingClientRect();
+    const dist = Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2);
+    if (dist < minDist) { minDist = dist; closest = i; }
+  });
+  currentVisiblePage = closest;
+  document.getElementById('export-current-num').textContent = `p.${closest + 1}`;
+});
+
+// Export only available when PDF Sim is ON (what you see is what you export)
+function updateExportBtn() {
+  const btn = document.getElementById('btn-export');
+  const ready = pdfSimMode && currentPages.length > 0;
+  btn.disabled = !ready;
+  btn.title = ready
+    ? 'Export the current PDF simulation as a PDF file'
+    : 'Turn on PDF Sim first — Export PDF exports exactly what PDF Sim shows';
+}
+
+const btnExport  = document.getElementById('btn-export');
+const exportMenu = document.getElementById('export-menu');
+btnExport.addEventListener('click', e => {
+  e.stopPropagation();
+  const opening = !exportMenu.classList.contains('open');
+  exportMenu.classList.toggle('open', opening);
+  if (opening) {
+    document.getElementById('export-all-count').textContent =
+      `${currentPages.length} page${currentPages.length !== 1 ? 's' : ''}`;
+    document.getElementById('export-current-num').textContent =
+      `p.${currentVisiblePage + 1}`;
+  }
+});
+document.addEventListener('click', () => exportMenu.classList.remove('open'));
+exportMenu.addEventListener('click', e => e.stopPropagation());
+
+// Convert all blob URL images in an iframe to base64 data URLs
+async function inlineIframeImages(iDoc) {
+  const imgs = Array.from(iDoc.querySelectorAll('img[src]'));
+  await Promise.all(imgs.map(img => new Promise(resolve => {
+    const src = img.getAttribute('src');
+    if (!src || src.startsWith('data:')) { resolve(); return; }
+    // Draw to canvas to get base64
+    const i = new Image();
+    i.crossOrigin = 'anonymous';
+    i.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = i.naturalWidth; c.height = i.naturalHeight;
+        c.getContext('2d').drawImage(i, 0, 0);
+        img.setAttribute('src', c.toDataURL('image/png'));
+      } catch(e) { /* keep original src */ }
+      resolve();
+    };
+    i.onerror = resolve;
+    i.src = src;
+  })));
+}
+
+async function exportToPdf(pageIndices) {
+  const iframes = Array.from(document.querySelectorAll('.page-iframe'));
+  if (iframes.length === 0) { alert('No pages loaded.'); return; }
+  const indices = pageIndices === null ? iframes.map((_, i) => i) : pageIndices;
+
+  btnExport.textContent = '⏳ Preparing…';
+  btnExport.disabled = true;
+
+  try {
+    const pageBlocks = await Promise.all(indices.map(async i => {
+      const iframe = iframes[i];
+      if (!iframe || !iframe.contentDocument) return '<div class="wp-page"></div>';
+      const iDoc = iframe.contentDocument;
+
+      // Inline all images as base64 so they survive the popup boundary
+      await inlineIframeImages(iDoc);
+
+      // Capture full document HTML after inlining
+      const fullHtml = iDoc.documentElement.outerHTML;
+      return `<div class="wp-page">${fullHtml}</div>`;
+    }));
+
+    const lessonName = currentHtmlName ? currentHtmlName.replace(/\.html$/i, '') : 'worktext';
+    const printDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${lessonName}</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:white;margin:0;padding:0;}
+  @page{size:8.5in 11in;margin:0;}
+  .wp-page{
+    width:816px; height:1056px; overflow:hidden;
+    page-break-after:always; break-after:page;
+    position:relative; background:white;
+    /* Isolate each page's CSS scope */
+    display:block;
+  }
+  .wp-page:last-child{ page-break-after:avoid; break-after:avoid; }
+  /* Reset any outer-document interference */
+  .wp-page html, .wp-page body { margin:0; padding:0; background:white; }
+</style></head><body>${pageBlocks.join('\n')}</body></html>`;
+
+    const popup = window.open('', '_blank', 'width=900,height=700');
+    if (!popup) {
+      alert('Pop-up blocked! Please allow pop-ups for this page and try again.');
+      return;
+    }
+    popup.document.open();
+    popup.document.write(printDoc);
+    popup.document.close();
+
+    const doPrint = () => setTimeout(() => {
+      popup.focus();
+      popup.print();
+      popup.onafterprint = () => popup.close();
+      setTimeout(() => { try { popup.close(); } catch(e) {} }, 30000);
+    }, 1000);
+
+    if (popup.document.readyState === 'complete') doPrint();
+    else popup.onload = doPrint;
+
+  } finally {
+    btnExport.textContent = '📥 Export PDF ▾';
+    btnExport.disabled = false;
+  }
+}
+
+document.getElementById('export-all').addEventListener('click', () => {
+  exportMenu.classList.remove('open');
+  exportToPdf(null);
+});
+document.getElementById('export-current').addEventListener('click', () => {
+  exportMenu.classList.remove('open');
+  exportToPdf([currentVisiblePage]);
+});
+
+// ═══════════════════════════════════════════════════════════
+//  REVIEW / ANNOTATION SYSTEM  (v4 — content-trigger-based)
+//  Added as a separate layer — does NOT touch any existing
+//  PDF Sim, renderer, overflow, or export logic.
+//
+//  Triggers:
+//    • Highlight text  → type:'text'   (yellow highlight + note)
+//    • Click image     → type:'image'  (orange outline + note)
+//
+//  Communication: window.postMessage between parent ↔ iframes.
+//  Each iframe gets a review script injected after load that:
+//    • Detects mouseup for text selections
+//    • Detects img clicks
+//    • Posts events to parent; receives commands back
+//
+//  Persistence: annotations array → embedded JSON in saved HTML.
+//  On reload the iframe script re-applies highlights / markers.
+//
+//  PDF Export: strips wt-hl marks and img-commented outlines
+//  before printing; re-applies them after export.
+// ═══════════════════════════════════════════════════════════
+
+// ── State ──
+let annotations = [];
+let annotIdSeq  = 0;
+/*  annotation shape:
+    {
+      id, pageIndex, type ('text'|'image'),
+      x, y,           -- note top-left in frame px
+      text, time, collapsed,
+      highlightData:  { startPath, startOffset, endPath, endOffset } | null,
+      highlightText:  string (snippet preview),
+      imgSrc:         string (basename),
+      imgIndex:       number (0-based among same-src imgs)
+    }
+*/
+
+// ── SVG strawberry doodle ──
+const STRAWBERRY_SVG = `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path d="M16 10 C14 6, 10 5, 9 8 C11 7, 13 9, 16 10Z" fill="#5aaa5c" stroke="#3d7a3e" stroke-width="0.7" stroke-linejoin="round"/>
+  <path d="M16 10 C18 6, 22 5, 23 8 C21 7, 19 9, 16 10Z" fill="#5aaa5c" stroke="#3d7a3e" stroke-width="0.7" stroke-linejoin="round"/>
+  <path d="M16 10 C16 6, 16 4, 16 4 C16 4, 16 6, 16 10Z" fill="#5aaa5c" stroke="#3d7a3e" stroke-width="0.7"/>
+  <path d="M10 13 C9 16, 9 20, 16 26 C23 20, 23 16, 22 13 C20 11, 12 11, 10 13Z" fill="#f05a70" stroke="#c43050" stroke-width="1" stroke-linejoin="round"/>
+  <ellipse cx="14" cy="16" rx="0.9" ry="1.1" fill="#fff" opacity="0.85" transform="rotate(-10,14,16)"/>
+  <ellipse cx="18" cy="16" rx="0.9" ry="1.1" fill="#fff" opacity="0.85" transform="rotate(10,18,16)"/>
+  <ellipse cx="13" cy="19.5" rx="0.9" ry="1.1" fill="#fff" opacity="0.85" transform="rotate(-5,13,19.5)"/>
+  <ellipse cx="19" cy="19.5" rx="0.9" ry="1.1" fill="#fff" opacity="0.85" transform="rotate(5,19,19.5)"/>
+  <ellipse cx="16" cy="21.5" rx="0.9" ry="1.1" fill="#fff" opacity="0.85"/>
+  <path d="M12 14 Q13 12.5, 14.5 13.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" stroke-linecap="round"/>
+</svg>`;
+
+function formatTime(iso) {
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ─────────────────────────────────────────────
+//  IFRAME REVIEW SCRIPT
+//  Injected into each iframe after load.
+//  Uses ES5 syntax (maximum iframe compat).
+// ─────────────────────────────────────────────
+function getIframeReviewScript(pageIndex) {
+  return `<style id="wt-review-style">
+mark.wt-hl {
+  background: #ffe066 !important;
+  color: inherit !important;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+img.wt-img-commented {
+  outline: 2.5px solid #f5a623 !important;
+  outline-offset: 2px;
+}
+</style>
+<script id="wt-review-script">
+(function(){
+  var PI = ${pageIndex};
+  var active = false;
+
+  function nodePath(node, root) {
+    var p = [];
+    while (node && node !== root) {
+      var par = node.parentNode; if (!par) break;
+      var idx = 0;
+      for (var c = par.firstChild; c; c = c.nextSibling) { if (c === node) break; idx++; }
+      p.unshift(idx);
+      node = par;
+    }
+    return p;
+  }
+  function resolveNodePath(path, root) {
+    var n = root;
+    for (var i = 0; i < path.length; i++) { n = n.childNodes[path[i]]; if (!n) return null; }
+    return n;
+  }
+  function serializeRange(range, root) {
+    return {
+      startPath: nodePath(range.startContainer, root), startOffset: range.startOffset,
+      endPath:   nodePath(range.endContainer,   root), endOffset:   range.endOffset
+    };
+  }
+  function highlightRange(range, annId) {
+    try {
+      var frag = range.extractContents();
+      var mark = document.createElement('mark');
+      mark.className = 'wt-hl';
+      mark.setAttribute('data-ann-id', String(annId));
+      mark.appendChild(frag);
+      range.insertNode(mark);
+    } catch(e) {}
+  }
+  function removeHighlight(annId) {
+    document.querySelectorAll('mark.wt-hl[data-ann-id="'+annId+'"]').forEach(function(m){
+      var p = m.parentNode;
+      while (m.firstChild) p.insertBefore(m.firstChild, m);
+      p.removeChild(m);
+      try { p.normalize(); } catch(e) {}
+    });
+  }
+  function restoreHighlight(hd, annId) {
+    if (!hd) return;
+    try {
+      var s = resolveNodePath(hd.startPath, document.body);
+      var e = resolveNodePath(hd.endPath,   document.body);
+      if (!s || !e) return;
+      var r = document.createRange();
+      r.setStart(s, hd.startOffset);
+      r.setEnd(e, hd.endOffset);
+      highlightRange(r, annId);
+    } catch(err) {}
+  }
+  function imgBasename(src) { return (src||'').split('/').pop().split('?')[0]; }
+  function imgIndexOf(img) {
+    var bn = imgBasename(img.src);
+    var all = Array.from(document.querySelectorAll('img'));
+    return all.filter(function(i){ return imgBasename(i.src)===bn; }).indexOf(img);
+  }
+  function addImgMarker(srcBn, imgIdx, annId) {
+    var all = Array.from(document.querySelectorAll('img'));
+    var same = all.filter(function(i){ return imgBasename(i.src)===srcBn; });
+    var img = same[imgIdx] !== undefined ? same[imgIdx] : same[0];
+    if (!img) return;
+    img.classList.add('wt-img-commented');
+    img.setAttribute('data-ann-id', String(annId));
+  }
+  function removeImgMarker(annId) {
+    document.querySelectorAll('img.wt-img-commented[data-ann-id="'+annId+'"]').forEach(function(img){
+      img.classList.remove('wt-img-commented');
+      img.removeAttribute('data-ann-id');
+    });
+  }
+  function post(msg) {
+    msg.pageIndex = PI;
+    try { window.parent.postMessage(msg, '*'); } catch(e) {}
+  }
+
+  // Text selection
+  document.addEventListener('mouseup', function(e) {
+    if (!active) return;
+    if (e.target.closest && e.target.closest('mark.wt-hl')) return;
+    if (e.target.tagName === 'IMG') return;
+    setTimeout(function() {
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.toString().trim()) return;
+      var range = sel.getRangeAt(0);
+      var text  = sel.toString().trim();
+      var hd    = serializeRange(range, document.body);
+      var tmpId = 'tmp_'+Date.now();
+      highlightRange(range, tmpId);
+      sel.removeAllRanges();
+      // Use body-scroll-relative coordinates so parent can place note correctly
+      var marks = document.querySelectorAll('mark.wt-hl[data-ann-id="'+tmpId+'"]');
+      var lastMark = marks.length ? marks[marks.length-1] : null;
+      var scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      var scrollX = window.scrollX || document.documentElement.scrollLeft || 0;
+      var noteX = 60, noteY = 60;
+      if (lastMark) {
+        var r = lastMark.getBoundingClientRect();
+        noteX = r.left + scrollX;
+        noteY = r.bottom + scrollY + 8;
+      }
+      post({ type:'wt-text-comment', highlightData:hd, highlightText:text.slice(0,120),
+             tmpId:tmpId, noteX:noteX, noteY:noteY });
+    }, 20);
+  });
+
+  // Image click
+  document.addEventListener('click', function(e) {
+    if (!active) return;
+    var img = e.target;
+    if (img.tagName !== 'IMG') return;
+    e.preventDefault(); e.stopPropagation();
+    var scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    var scrollX = window.scrollX || document.documentElement.scrollLeft || 0;
+    var rect = img.getBoundingClientRect();
+    var noteX = rect.left + scrollX;
+    var noteY = rect.bottom + scrollY + 8;
+    post({ type:'wt-image-comment', imgSrc:imgBasename(img.src), imgIndex:imgIndexOf(img),
+           noteX:noteX, noteY:noteY });
+  });
+
+  // Commands from parent
+  window.addEventListener('message', function(e) {
+    var d = e.data;
+    if (!d || d.pageIndex !== PI) return;
+    if (d.cmd === 'set-review-mode') {
+      active = !!d.active;
+      document.body.style.cursor = active ? 'text' : '';
+      document.querySelectorAll('img').forEach(function(img){ img.style.cursor = active ? 'pointer' : ''; });
+    }
+    if (d.cmd === 'confirm-highlight') {
+      document.querySelectorAll('mark.wt-hl[data-ann-id="'+d.tmpId+'"]').forEach(function(m){
+        m.setAttribute('data-ann-id', String(d.annId));
+      });
+    }
+    if (d.cmd === 'restore-highlights') {
+      (d.items||[]).forEach(function(item){ restoreHighlight(item.highlightData, item.annId); });
+    }
+    if (d.cmd === 'restore-img-markers') {
+      (d.items||[]).forEach(function(item){ addImgMarker(item.imgSrc, item.imgIndex, item.annId); });
+    }
+    if (d.cmd === 'remove-highlight') { removeHighlight(d.annId); }
+    if (d.cmd === 'remove-img-marker') { removeImgMarker(d.annId); }
+    if (d.cmd === 'strip-for-export') {
+      document.querySelectorAll('mark.wt-hl').forEach(function(m){
+        var p = m.parentNode;
+        while (m.firstChild) p.insertBefore(m.firstChild, m);
+        p.removeChild(m);
+        try { p.normalize(); } catch(e) {}
+      });
+      document.querySelectorAll('img.wt-img-commented').forEach(function(img){
+        img.classList.remove('wt-img-commented');
+        img.removeAttribute('data-ann-id');
+      });
+      post({ type:'wt-strip-done' });
+    }
+    if (d.cmd === 'restore-after-export') {
+      (d.textItems||[]).forEach(function(item){ restoreHighlight(item.highlightData, item.annId); });
+      (d.imgItems||[]).forEach(function(item){ addImgMarker(item.imgSrc, item.imgIndex, item.annId); });
+    }
+  });
+})();
+<\/script>`;
+}
+
+
+
+// ─────────────────────────────────────────────
+//  INJECT REVIEW SCRIPT INTO ONE IFRAME
+//  Called from inside the iframe's load event — guaranteed ready.
+// ─────────────────────────────────────────────
+function injectReviewScriptIntoIframe(iframe, idx) {
+  try {
+    const iDoc = iframe.contentDocument;
+    if (!iDoc || !iDoc.body) return;
+    // Remove any previous injection (re-render case)
+    const old = iDoc.getElementById('wt-review-script');
+    if (old) old.remove();
+    const oldStyle = iDoc.getElementById('wt-review-style');
+    if (oldStyle) oldStyle.remove();
+
+    // Parse the template string into real DOM elements
+    const tmp = iDoc.createElement('div');
+    tmp.innerHTML = getIframeReviewScript(idx);
+    const styleEl = tmp.querySelector('style');
+    if (styleEl) iDoc.head.appendChild(styleEl);
+    const scriptEl = tmp.querySelector('script');
+    if (scriptEl) {
+      const s = iDoc.createElement('script');
+      s.id = 'wt-review-script';
+      s.textContent = scriptEl.textContent;
+      iDoc.body.appendChild(s);
+    }
+    // Always activate review listeners — comments work in all modes
+    iframe.contentWindow.postMessage({ cmd: 'set-review-mode', pageIndex: idx, active: true }, '*');
+    // Restore any existing markings for this page
+    restoreIframeMarkings(idx);
+  } catch(e) {
+    console.warn('wt: could not inject review script into iframe', idx, e);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  INJECT INTO ALL LOADED IFRAMES (for re-inject after mode toggle)
+// ─────────────────────────────────────────────
+function injectReviewScripts() {
+  document.querySelectorAll('.page-iframe').forEach((iframe, idx) => {
+    try {
+      const iDoc = iframe.contentDocument;
+      if (iDoc && iDoc.body && iDoc.readyState === 'complete') {
+        injectReviewScriptIntoIframe(iframe, idx);
+      }
+      // If not ready, it will be handled by the load event in renderCanvas
+    } catch(e) {}
+  });
+}
+
+// ─────────────────────────────────────────────
+//  RESTORE MARKINGS FOR ONE PAGE
+// ─────────────────────────────────────────────
+function restoreIframeMarkings(pageIdx) {
+  const iframe    = document.getElementById(`iframe-${pageIdx}`);
+  if (!iframe) return;
+  const pageAnns  = annotations.filter(a => a.pageIndex === pageIdx);
+  const textItems = pageAnns.filter(a => a.type === 'text' && a.highlightData)
+                            .map(a => ({ annId: a.id, highlightData: a.highlightData }));
+  const imgItems  = pageAnns.filter(a => a.type === 'image')
+                            .map(a => ({ annId: a.id, imgSrc: a.imgSrc, imgIndex: a.imgIndex }));
+  const sendRestore = () => {
+    if (textItems.length) iframe.contentWindow.postMessage({ cmd: 'restore-highlights',   pageIndex: pageIdx, items: textItems }, '*');
+    if (imgItems.length)  iframe.contentWindow.postMessage({ cmd: 'restore-img-markers',  pageIndex: pageIdx, items: imgItems  }, '*');
+  };
+  if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') sendRestore();
+  else iframe.addEventListener('load', sendRestore, { once: true });
+}
+
+function restoreAllIframeMarkings() {
+  document.querySelectorAll('.page-iframe').forEach((_, idx) => restoreIframeMarkings(idx));
+}
+
+// ─────────────────────────────────────────────
+//  POSTMESSAGE LISTENER  (parent receives from iframes)
+// ─────────────────────────────────────────────
+window.addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d) return;
+
+  if (d.type === 'wt-text-comment') {
+    if (!currentHtmlName) return;
+    const frame = document.getElementById(`frame-${d.pageIndex}`);
+    if (!frame) return;
+    const x = Math.min(Math.max(d.noteX || 100, 5), 816 - 215);
+    const y = Math.min(Math.max(d.noteY || 100, 5), 900);
+    const ann = {
+      id: ++annotIdSeq, pageIndex: d.pageIndex, type: 'text',
+      x, y, text: '', time: new Date().toISOString(), collapsed: false,
+      highlightData: d.highlightData, highlightText: d.highlightText || '',
+      imgSrc: null, imgIndex: 0
+    };
+    annotations.push(ann);
+    // Confirm the real id back to the iframe to update the mark element
+    const iframe = document.getElementById(`iframe-${d.pageIndex}`);
+    if (iframe) iframe.contentWindow.postMessage({ cmd: 'confirm-highlight', pageIndex: d.pageIndex, tmpId: d.tmpId, annId: ann.id }, '*');
+    const noteEl = createNoteEl(ann);
+    frame.appendChild(noteEl);
+    setTimeout(() => { const ta = noteEl.querySelector('.note-body'); if (ta) ta.focus(); }, 60);
+    saveAnnotationState(); refreshCommentsSidebar();
+  }
+
+  if (d.type === 'wt-image-comment') {
+    if (!currentHtmlName) return;
+    const frame = document.getElementById(`frame-${d.pageIndex}`);
+    if (!frame) return;
+    const x = Math.min(Math.max(d.noteX || 100, 5), 816 - 215);
+    const y = Math.min(Math.max(d.noteY || 100, 5), 900);
+    const ann = {
+      id: ++annotIdSeq, pageIndex: d.pageIndex, type: 'image',
+      x, y, text: '', time: new Date().toISOString(), collapsed: false,
+      highlightData: null, highlightText: '',
+      imgSrc: d.imgSrc, imgIndex: d.imgIndex || 0
+    };
+    annotations.push(ann);
+    // Add marker to the img
+    const iframe = document.getElementById(`iframe-${d.pageIndex}`);
+    if (iframe) iframe.contentWindow.postMessage({ cmd: 'restore-img-markers', pageIndex: d.pageIndex, items: [{ annId: ann.id, imgSrc: ann.imgSrc, imgIndex: ann.imgIndex }] }, '*');
+    const noteEl = createNoteEl(ann);
+    frame.appendChild(noteEl);
+    setTimeout(() => { const ta = noteEl.querySelector('.note-body'); if (ta) ta.focus(); }, 60);
+    saveAnnotationState(); refreshCommentsSidebar();
+  }
+});
+
+// ─────────────────────────────────────────────
+//  CUSTOM DELETE MODAL
+// ─────────────────────────────────────────────
+function showDeleteModal(onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'wt-modal-overlay';
+
+  const modal = document.createElement('div');
+  modal.className = 'wt-modal';
+  modal.innerHTML = `
+    <div class="wt-modal-berry">${STRAWBERRY_SVG}</div>
+    <div class="wt-modal-title">The spark is gone. 💔\nDelete this comment?</div>
+    <div class="wt-modal-btns">
+      <button class="wt-modal-btn wt-modal-btn-yes" id="wt-del-yes">Yes</button>
+      <button class="wt-modal-btn wt-modal-btn-no"  id="wt-del-no">No</button>
+    </div>
+  `;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // Close helpers
+  const close = () => document.body.removeChild(overlay);
+
+  modal.querySelector('#wt-del-yes').addEventListener('click', () => {
+    close();
+    onConfirm();
+  });
+  modal.querySelector('#wt-del-no').addEventListener('click', close);
+  // Click backdrop to dismiss
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  // Esc key
+  const onKey = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+}
+
+// ─────────────────────────────────────────────
+//  NO-COMMENTS WARNING MODAL
+// ─────────────────────────────────────────────
+function showNoCommentsModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'wt-modal-overlay';
+
+  const modal = document.createElement('div');
+  modal.className = 'wt-modal';
+  modal.innerHTML = `
+    <div class="wt-modal-berry">${STRAWBERRY_SVG}</div>
+    <div class="wt-modal-title">Add at least one review comment\nbefore saving a reviewed HTML. 🍓</div>
+    <div class="wt-modal-btns">
+      <button class="wt-modal-btn wt-modal-btn-no" id="wt-nocomment-ok">Got it</button>
+    </div>
+  `;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  const close = () => document.body.removeChild(overlay);
+  modal.querySelector('#wt-nocomment-ok').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  const onKey = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
+}
+
+// ─────────────────────────────────────────────
+//  CREATE NOTE ELEMENT
+// ─────────────────────────────────────────────
+function createNoteEl(ann) {
+  const note = document.createElement('div');
+  note.className = 'wt-annotation' + (ann.collapsed ? ' collapsed' : '');
+  note.id = `ann-${ann.id}`;
+  note.style.left = ann.x + 'px';
+  note.style.top  = ann.y + 'px';
+
+  // Drag handle
+  const drag = document.createElement('div');
+  drag.className = 'note-drag-handle';
+  drag.title = 'Drag to reposition';
+  for (let i = 0; i < 6; i++) { const dot = document.createElement('span'); drag.appendChild(dot); }
+  note.appendChild(drag);
+
+  // Strawberry
+  const berry = document.createElement('div');
+  berry.className = 'note-strawberry';
+  berry.innerHTML = STRAWBERRY_SVG;
+  note.appendChild(berry);
+
+  // Context label
+  if (ann.type === 'text' && ann.highlightText) {
+    const ctx = document.createElement('div');
+    ctx.style.cssText = 'font-size:10px;color:#888;margin-bottom:4px;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;font-family:Montserrat,sans-serif;';
+    ctx.title = ann.highlightText;
+    ctx.textContent = '\u275d ' + ann.highlightText.slice(0, 40) + (ann.highlightText.length > 40 ? '\u2026' : '');
+    note.appendChild(ctx);
+  } else if (ann.type === 'image') {
+    const ctx = document.createElement('div');
+    ctx.style.cssText = 'font-size:10px;color:#888;margin-bottom:4px;font-family:Montserrat,sans-serif;';
+    ctx.textContent = '\uD83D\uDDBC\uFE0F Image comment';
+    note.appendChild(ctx);
+  }
+
+  // Actions
+  const actions = document.createElement('div');
+  actions.className = 'note-actions';
+
+  const collapseBtn = document.createElement('button');
+  collapseBtn.className = 'note-action-btn';
+  collapseBtn.title = 'Collapse / Expand';
+  collapseBtn.textContent = ann.collapsed ? '\uff0b' : '\uff0d';
+  collapseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ann.collapsed = !ann.collapsed;
+    note.classList.toggle('collapsed', ann.collapsed);
+    collapseBtn.textContent = ann.collapsed ? '\uff0b' : '\uff0d';
+    saveAnnotationState();
+  });
+  actions.appendChild(collapseBtn);
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'note-action-btn';
+  deleteBtn.title = 'Delete comment';
+  deleteBtn.textContent = '\u2715';
+  deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showDeleteModal(() => {
+      const iframe = document.getElementById(`iframe-${ann.pageIndex}`);
+      if (iframe) {
+        if (ann.type === 'text')  iframe.contentWindow.postMessage({ cmd: 'remove-highlight',   pageIndex: ann.pageIndex, annId: ann.id }, '*');
+        if (ann.type === 'image') iframe.contentWindow.postMessage({ cmd: 'remove-img-marker',  pageIndex: ann.pageIndex, annId: ann.id }, '*');
+      }
+      note.remove();
+      annotations = annotations.filter(a => a.id !== ann.id);
+      saveAnnotationState(); refreshCommentsSidebar();
+    });
+  });
+  actions.appendChild(deleteBtn);
+  note.appendChild(actions);
+
+  // Textarea
+  const body = document.createElement('textarea');
+  body.className = 'note-body';
+  body.placeholder = 'Type your comment\u2026 (Enter to save)';
+  body.value = ann.text;
+  body.rows = 2;
+  function autoGrow() { body.style.height = 'auto'; body.style.height = body.scrollHeight + 'px'; }
+  body.addEventListener('input', () => { ann.text = body.value; autoGrow(); saveAnnotationState(); refreshCommentsSidebar(); });
+  body.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); body.blur(); saveAnnotationState(); refreshCommentsSidebar(); }
+  });
+  body.addEventListener('focus', (e) => e.stopPropagation());
+  body.addEventListener('mousedown', (e) => e.stopPropagation());
+  note.appendChild(body);
+  setTimeout(autoGrow, 0);
+
+  // Timestamp
+  const timeEl = document.createElement('div');
+  timeEl.className = 'note-time';
+  timeEl.textContent = formatTime(ann.time);
+  note.appendChild(timeEl);
+
+  // Drag-to-move
+  drag.addEventListener('mousedown', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const startX = e.clientX - note.offsetLeft;
+    const startY = e.clientY - note.offsetTop;
+    function onMove(ev) {
+      let nx = Math.max(0, Math.min(816  - note.offsetWidth,  ev.clientX - startX));
+      let ny = Math.max(0, Math.min(1056 - note.offsetHeight, ev.clientY - startY));
+      note.style.left = nx + 'px'; note.style.top = ny + 'px';
+      ann.x = nx; ann.y = ny;
+    }
+    function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); saveAnnotationState(); }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  return note;
+}
+
+// ─────────────────────────────────────────────
+//  RESTORE ANNOTATIONS FROM SAVED DATA
+// ─────────────────────────────────────────────
+function restoreAnnotations(data) {
+  document.querySelectorAll('.wt-annotation').forEach(el => el.remove());
+  annotations = []; annotIdSeq = 0;
+  if (!Array.isArray(data)) return;
+  data.forEach(ann => {
+    if (annotIdSeq < ann.id) annotIdSeq = ann.id;
+    if (!ann.type) ann.type = 'text'; // back-compat
+    annotations.push(ann);
+    const frame = document.getElementById(`frame-${ann.pageIndex}`);
+    if (!frame) return;
+    frame.appendChild(createNoteEl(ann));
+  });
+  restoreAllIframeMarkings();
+  refreshCommentsSidebar();
+}
+
+// ─────────────────────────────────────────────
+//  REATTACH ANNOTATIONS AFTER RE-RENDER
+// ─────────────────────────────────────────────
+function reattachAnnotations() {
+  document.querySelectorAll('.wt-annotation').forEach(el => el.remove());
+  annotations.forEach(ann => {
+    const frame = document.getElementById(`frame-${ann.pageIndex}`);
+    if (!frame) return;
+    frame.appendChild(createNoteEl(ann));
+  });
+  injectReviewScripts();
+  refreshCommentsSidebar();
+}
+
+// ── Save state ──
+function saveAnnotationState() { refreshCommentsSidebar(); }
+
+// ── Sidebar comments panel ──
+function refreshCommentsSidebar() {
+  const panel = document.getElementById('comments-panel');
+  const list  = document.getElementById('comments-list');
+  const cnt   = document.getElementById('comments-panel-count');
+  if (!panel || !list || !cnt) return;
+  cnt.textContent = annotations.length;
+  if (!annotations.length) {
+    list.innerHTML = '<div class="comments-empty">No comments yet.<br>Highlight text or click an image to add a comment.</div>';
+    updateSaveReviewedBtn();
+    return;
+  }
+  const sorted = [...annotations].sort((a, b) => a.pageIndex - b.pageIndex || a.id - b.id);
+  list.innerHTML = '';
+  sorted.forEach(ann => {
+    const entry = document.createElement('div');
+    entry.className = 'comment-entry';
+    const icon    = ann.type === 'image' ? '\uD83D\uDDBC\uFE0F' : '\uD83C\uDF53';
+    const preview = ann.text.trim() || (ann.highlightText ? `"${ann.highlightText.slice(0,30)}\u2026"` : '(empty)');
+    entry.innerHTML = `<span class="ce-page">Page ${ann.pageIndex + 1}</span><span class="ce-text">${icon} ${preview}</span>`;
+    entry.addEventListener('click', () => {
+      scrollToPage(ann.pageIndex);
+      const noteEl = document.getElementById(`ann-${ann.id}`);
+      if (noteEl) { noteEl.style.outline = '2px solid #d4537e'; setTimeout(() => { noteEl.style.outline = ''; }, 1200); }
+    });
+    list.appendChild(entry);
+  });
+  updateSaveReviewedBtn();
+}
+
+
+
+
+
+
+
+// ── Save-reviewed btn ──
+function updateSaveReviewedBtn() {
+  const btn = document.getElementById('btn-save-reviewed');
+  if (!btn) return;
+  const hasComments = annotations.length > 0;
+  const ready       = !!currentHtmlName && hasComments;
+  btn.disabled      = !ready;
+  btn.style.opacity = ready ? '' : '0.45';
+  btn.title         = ready
+    ? 'Save a reviewed HTML file with all annotation data embedded'
+    : currentHtmlName
+      ? 'Add at least one review comment before saving a reviewed HTML'
+      : 'Open a file first';
+}
+
+// ─────────────────────────────────────────────
+//  PATCH renderCanvas
+// ─────────────────────────────────────────────
+const _origRenderCanvas = renderCanvas;
+window.renderCanvas = function(fileName, pages) {
+  _origRenderCanvas(fileName, pages);
+  setTimeout(() => { reattachAnnotations(); }, 0);
+};
+
+
+
+// ─────────────────────────────────────────────
+//  EXPORT PDF — strip review markings first
+// ─────────────────────────────────────────────
+const _origExportToPdf = exportToPdf;
+window.exportToPdf = async function(pageIndices) {
+  // Strip markings from iframes before export (non-destructive: we restore after)
+  const iframes = Array.from(document.querySelectorAll('.page-iframe'));
+  iframes.forEach((iframe, idx) => {
+    try {
+      const iDoc = iframe.contentDocument;
+      if (!iDoc) return;
+      iDoc.querySelectorAll('mark.wt-hl').forEach(m => {
+        const p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m);
+        p.removeChild(m); try { p.normalize(); } catch(e) {}
+      });
+      iDoc.querySelectorAll('img.wt-img-commented').forEach(img => {
+        img.classList.remove('wt-img-commented'); img.removeAttribute('data-ann-id');
+      });
+    } catch(e) {}
+  });
+
+  await _origExportToPdf(pageIndices);
+
+  // Restore markings in the studio view after export
+  setTimeout(() => restoreAllIframeMarkings(), 600);
+};
+
+// ─────────────────────────────────────────────
+//  SAVE REVIEWED HTML
+// ─────────────────────────────────────────────
+document.getElementById('btn-save-reviewed').addEventListener('click', () => {
+  if (!lastHtmlContent) { alert('No file loaded.'); return; }
+  if (!annotations.length) { showNoCommentsModal(); return; }
+  const annotData    = JSON.stringify(annotations, null, 2);
+  const commentBlock = `\n<!-- WORKTEXT STUDIO COMMENTS -->\n<script id="wt-comments" type="application/json">\n${annotData}\n<\/script>\n`;
+  let cleanHtml = lastHtmlContent.replace(/\n?<!-- WORKTEXT STUDIO COMMENTS -->[\s\S]*?<\/script>\n?/g, '');
+  let reviewed  = cleanHtml.includes('</body>') ? cleanHtml.replace('</body>', commentBlock + '</body>') : cleanHtml + commentBlock;
+  const baseName = currentHtmlName ? currentHtmlName.replace(/\.html?$/i, '_reviewed.html') : 'worktext_reviewed.html';
+  const blob = new Blob([reviewed], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = baseName; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+});
+
+// ─────────────────────────────────────────────
+//  LOAD EMBEDDED COMMENTS
+// ─────────────────────────────────────────────
+function loadEmbeddedComments(rawHtml) {
+  const match = rawHtml.match(/<!-- WORKTEXT STUDIO COMMENTS -->[\s\S]*?<script id="wt-comments"[^>]*>([\s\S]*?)<\/script>/);
+  if (!match) return;
+  try {
+    const data = JSON.parse(match[1].trim());
+    setTimeout(() => {
+      restoreAnnotations(data);
+      if (data.length > 0) { const panel = document.getElementById('comments-panel'); if (panel) panel.classList.add('open'); }
+    }, 150);
+  } catch(e) { console.warn('Worktext Studio: could not parse embedded comments', e); }
+}
+
+// ─────────────────────────────────────────────
+//  FILE OPEN HOOKS
+// ─────────────────────────────────────────────
+const _origOpenHtmlFileHandle = openHtmlFileHandle;
+window.openHtmlFileHandle = async function(fileHandle) {
+  annotations = []; annotIdSeq = 0;
+  document.querySelectorAll('.wt-annotation').forEach(el => el.remove());
+  refreshCommentsSidebar();
+  await _origOpenHtmlFileHandle(fileHandle);
+  loadEmbeddedComments(lastHtmlContent);
+  updateSaveReviewedBtn();
+};
+
+const _origLoadAndRender = loadAndRender;
+window.loadAndRender = async function() {
+  await _origLoadAndRender();
+  updateSaveReviewedBtn();
+};
+</script>
+
+</body>
+</html>
