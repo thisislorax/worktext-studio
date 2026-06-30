@@ -1885,7 +1885,7 @@ async function exportToPdf(pageIndices) {
   btnExport.disabled = true;
 
   try {
-    const pageBlocks = await Promise.all(indices.map(async i => {
+    const pageBlocks = await Promise.all(indices.map(async (i, exportIndex) => {
       const iframe = iframes[i];
       if (!iframe || !iframe.contentDocument) return '<div class="wp-page"></div>';
       const iDoc = iframe.contentDocument;
@@ -1895,7 +1895,18 @@ async function exportToPdf(pageIndices) {
 
       // Capture full document HTML after inlining
       const fullHtml = iDoc.documentElement.outerHTML;
-      return `<div class="wp-page">${fullHtml}</div>`;
+
+      // The preview correctly hides .hdr on page 0 via a per-iframe <style>.
+      // In the popup all pages share one CSS scope, so a later page's
+      // `.hdr { display:flex }` would override page 0's hide rule.
+      // Fix: when this is the cover page (source page index 0), append a
+      // scoped rule that targets only the FIRST .wp-page so it can't be
+      // overridden by subsequent pages' styles.
+      const coverScopeStyle = (i === 0)
+        ? '<style>.wp-page:first-child .hdr{display:none!important}</style>'
+        : '';
+
+      return `<div class="wp-page">${fullHtml}</div>${coverScopeStyle}`;
     }));
 
     const lessonName = currentHtmlName ? currentHtmlName.replace(/\.html$/i, '') : 'worktext';
