@@ -997,7 +997,13 @@ const PDF_COMMON_CSS = `
   /* ── Bullet & numbered lists — mirror the renderer's inside-positioning fix ──
      Source HTML uses list-style-position:outside which Puppeteer clips.
      The renderer forces inside + hanging indent on all lists so they show correctly.
-     Do the same here so inspector (PDF Sim ON) matches the exported PDF exactly. */
+     Do the same here so inspector (PDF Sim ON) matches the exported PDF exactly.
+     Reset ul/ol padding/margin first so the browser default 40px left-padding
+     doesn't stack with the li padding-left and cause double indentation. */
+  ul, ol {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
   ul li {
     list-style-type: disc !important;
     list-style-position: inside !important;
@@ -1896,12 +1902,12 @@ async function exportToPdf(pageIndices) {
       // Capture full document HTML after inlining
       const fullHtml = iDoc.documentElement.outerHTML;
 
-      // The preview correctly hides .hdr on page 0 via a per-iframe <style>.
+      // The preview hides .hdr on page 0 via a per-iframe <style>.
       // In the popup all pages share one CSS scope, so a later page's
-      // `.hdr { display:flex }` would override page 0's hide rule.
-      // Fix: when this is the cover page (source page index 0), append a
-      // scoped rule that targets only the FIRST .wp-page so it can't be
-      // overridden by subsequent pages' styles.
+      // `.hdr { display:flex }` overrides page 0's hide rule.
+      // Fix: when this is the cover page (source index 0), append a
+      // scoped rule targeting only .wp-page:first-child so it wins
+      // regardless of subsequent pages' styles.
       const coverScopeStyle = (i === 0)
         ? '<style>.wp-page:first-child .hdr{display:none!important}</style>'
         : '';
@@ -1925,6 +1931,46 @@ async function exportToPdf(pageIndices) {
   .wp-page:last-child{ page-break-after:avoid; break-after:avoid; }
   /* Reset any outer-document interference */
   .wp-page html, .wp-page body { margin:0; padding:0; background:white; }
+
+  /* ── Bullet & numbered lists ─────────────────────────────────────────────
+     Mirrors the renderer's inside-positioning fix already in getPdfSimCSS().
+     Reset ul/ol default browser padding first so it doesn't stack with the
+     li padding-left and cause double indentation in the exported PDF. */
+  .wp-page ul, .wp-page ol {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+  .wp-page ul li {
+    list-style-type: disc !important;
+    list-style-position: inside !important;
+    text-indent: -1.2em !important;
+    padding-left: 1.2em !important;
+  }
+  .wp-page ol li {
+    list-style-type: decimal !important;
+    list-style-position: inside !important;
+    text-indent: -1.2em !important;
+    padding-left: 1.2em !important;
+  }
+  /* Intro box lists (obj-box / mat-box) — tighter indent, conditional bullet */
+  .wp-page .obj-box ul li,
+  .wp-page .mat-box ul li {
+    list-style-type: disc !important;
+    list-style-position: inside !important;
+    text-indent: -1em !important;
+    padding-left: 1.5em !important;
+  }
+  .wp-page .obj-box ul li:only-child,
+  .wp-page .mat-box ul li:only-child {
+    list-style-type: none !important;
+    text-indent: 0 !important;
+    padding-left: 0 !important;
+  }
+  /* MK q-list */
+  .wp-page ol.q-list {
+    list-style-type: decimal !important;
+    list-style-position: inside !important;
+  }
 </style></head><body>${pageBlocks.join('\n')}</body></html>`;
 
     const popup = window.open('', '_blank', 'width=900,height=700');
