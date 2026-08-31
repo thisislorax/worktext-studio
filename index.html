@@ -306,7 +306,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 32px 190px; /* extra bottom space reserves room for Chloe's corner */
+      padding: 40px 32px;
       gap: 40px;
     }
     .empty-state {
@@ -855,6 +855,7 @@
     .chloe-bubble-content { padding: 20px 22px 18px 20px; }
     .chloe-bubble-text { font-size: 10.5px; }
   }
+
   </style>
 </head>
 <body>
@@ -877,10 +878,9 @@
     <div class="renderer-wrap">
       <label for="renderer-select">Renderer</label>
       <select id="renderer-select">
-        <option value="sk">SK (Kindergarten)</option>
-        <option value="ak">AK / S1 / S2 / M1 / M2 / F1 / F2 / E1</option>
-        <option value="mk">MK-U1-C1</option>
+        <option value="ak">General</option>
         <option value="bible">Bible Subject</option>
+        <option value="tm">Teacher's Manual</option>
       </select>
     </div>
     <div class="toolbar-divider"></div>
@@ -936,7 +936,7 @@
       </div>
       <div class="stat-row">
         <span class="label">Renderer</span>
-        <span class="value" id="stat-renderer">SK</span>
+        <span class="value" id="stat-renderer">General</span>
       </div>
       <div class="stat-row">
         <span class="label">PDF Sim</span>
@@ -1018,7 +1018,7 @@ let currentHtmlName   = null;
 let watchInterval     = null;
 let lastHtmlContent   = null;
 let pdfSimMode        = false;   // Whether PDF simulation overrides are active
-let currentRenderer   = 'sk';   // 'sk' | 'ak' | 'mk' | 'bible'
+let currentRenderer   = 'ak';   // 'ak' (General) | 'bible' | 'tm' (Teacher's Manual)
 let imgMaxH           = 500;    // Max image height cap in px (mirrors render script setting)
 
 // ─────────────────────────────────────────────
@@ -1226,33 +1226,6 @@ const PDF_FONT_CSS = `
   .mat-box, .mat-box p, .mat-box li, .mat-box div { font-size: 22px !important; }
 `;
 
-// SK-specific overrides (from render_sk.js). SK always overrides fonts, so this
-// stays a single combined block exactly as before — untouched by the Bible work.
-const PDF_SK_CSS = `
-  /* SK intro box font reduction */
-  .obj-box h3, .mat-box h3 { font-size: 15px !important; }
-  .eq-box .eq-label         { font-size: 15px !important; }
-  .obj-box li, .obj-box p, .obj-box div,
-  .mat-box li, .mat-box p, .mat-box div { font-size: 13px !important; line-height: 1.5 !important; }
-  .eq-text, .eq-text *      { font-size: 13px !important; font-weight: 400 !important; }
-  .eq-label                 { font-weight: 800 !important; }
-
-  /* Conditional bullets (multi-item disc; single-item suppressed) */
-  /* list-style-position:inside mirrors Puppeteer PDF behaviour — outside markers are clipped in print path */
-  .obj-box ul li, .mat-box ul li {
-    list-style-type: disc !important;
-    list-style-position: inside !important;
-    text-indent: -1em !important;
-    padding-left: 1.5em !important;
-  }
-  .obj-box ul li:only-child,
-  .mat-box ul li:only-child {
-    list-style-type: none !important;
-    text-indent: 0 !important;
-    padding-left: 0 !important;
-  }
-`;
-
 // AK-specific overrides (from render_ak.js), split into a font-size delta and a
 // layout (bullet list) delta. Bible Subject reuses PDF_AK_LIST_CSS but never
 // applies PDF_AK_FONT_CSS — see RENDERER_CONFIG below.
@@ -1280,10 +1253,103 @@ const PDF_AK_LIST_CSS = `
 // Preserved for reference/back-compat — full AK delta (font + list) combined.
 const PDF_AK_CSS = PDF_AK_FONT_CSS + PDF_AK_LIST_CSS;
 
-// MK-specific extra rules on top of the AK delta (from render_mk.js).
-const PDF_MK_EXTRA_CSS = `
-  .mk-options { text-align: center !important; }
-  ol.q-list   { list-style-type: decimal !important; list-style-position: inside !important; }
+// ─────────────────────────────────────────────
+//  TEACHER'S MANUAL — standalone renderer delta
+//
+//  New renderer, independent of General (AK) and Bible Subject. Rules are
+//  sourced from the Teacher's Manual renderer prompt spec: a real font-size
+//  hierarchy (title/h2/h3/h4/body/h5/table) plus print-atomicity rules so
+//  headings, paragraphs, list items, tables, and figures never get sliced
+//  mid-block or stranded alone at the bottom of a page. Does not read from
+//  or modify PDF_AK_FONT_CSS / PDF_AK_LIST_CSS / PDF_SK_* — kept in its own
+//  block per the "don't touch General/Bible logic" requirement.
+// ─────────────────────────────────────────────
+const PDF_TM_CSS = `
+  /* ── Typography scale (renderer prompt spec) — own custom properties ── */
+  :root {
+    --fs-title: 28px;
+    --fs-h2:    19px;
+    --fs-h3:    18px;
+    --fs-h4:    16.5px;
+    --fs-body:  16px;
+    --fs-h5:    15px;
+    --fs-table: 14.5px;
+  }
+  h1, .tm-title, .doc-title { font-size: var(--fs-title) !important; }
+  h2, .tm-h2                { font-size: var(--fs-h2)    !important; }
+  h3, .tm-h3                { font-size: var(--fs-h3)    !important; }
+  h4, .tm-h4                { font-size: var(--fs-h4)    !important; }
+  h5, .tm-h5                { font-size: var(--fs-h5)    !important; }
+  p, li, .tm-body           { font-size: var(--fs-body)  !important; }
+  table, td, th, .tm-table  { font-size: var(--fs-table) !important; }
+
+  /* ── Content atomicity — nothing splits awkwardly across a page ── */
+  h1, h2, h3, h4, h5, p, li, table, tr, img, figure,
+  .tm-card, .tm-callout {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  /* Headings never stranded alone at the bottom of a page */
+  h1, h2, h3, h4, h5 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* ── Fixed physical-page box (PDF Sim only) ──────────────────────────
+     The Inspector's shared per-page override sets .page{min-height:unset},
+     which lets .page shrink to fit its content. Teacher's Manual source
+     HTML positions its own page-number footer with
+     "position:absolute; bottom:0.35in" relative to .page — if .page can
+     shrink, that footer anchors to the bottom of the *content* instead of
+     the true bottom of the physical 8.5in x 11in page. Restoring a fixed
+     height (1056px == 11in in this app's 816x1056 page-frame) makes the
+     footer land in the correct place, matching the reference HTML. */
+  .page { height: 1056px !important; min-height: 1056px !important; }
+
+  /* ── Book-style mirrored margins (PDF Sim only) ──────────────────────
+     The Inspector's shared per-page override applies one flat padding to
+     every .page (tuned for General/Bible content, which isn't mirrored).
+     Teacher's Manual source HTML mirrors its margins by odd/even page
+     (wider margin on the "inside/spine" edge) so the content column never
+     shifts width. Reproduced here in the same vh/vw coordinate space the
+     Inspector already uses for its fixed 816x1056 page-frame, so it still
+     fits the on-screen preview box exactly:
+       0.7in top/bottom  = 6.3636vh   (1056px page height)
+       0.5in narrow side = 5.8824vw   (816px page width)
+       0.9in wide side   = 10.5882vw  (816px page width)          */
+  .page.odd  { padding: 6.3636vh 5.8824vw 6.3636vh 10.5882vw !important; }
+  .page.even { padding: 6.3636vh 10.5882vw 6.3636vh 5.8824vw !important; }
+`;
+
+// ─────────────────────────────────────────────
+//  TEACHER'S MANUAL — safe PDF-Sim base (replaces PDF_BASE_CSS for 'tm')
+//
+//  Teacher's Manual source HTML ships as a fully self-styled, print-ready
+//  document — its own fonts, colors, spacing, margins, and page-number
+//  placement are already correct as authored. PDF_BASE_CSS (shared by
+//  General/Bible) is tuned for "authoring" HTML that relies on the shim to
+//  add print styling: it force-reassigns the same CSS variable names TM
+//  uses for its own section colors (--blue/--green/--teal/--purple, etc.),
+//  forces list-style/indentation, forces .hdr-title weight, and forces
+//  .title-bar / .wt td sizing from mm — all of which fight the TM
+//  reference HTML's own (already-correct) rules for those exact selectors.
+//  Teacher's Manual PDF Simulation uses this minimal, non-conflicting
+//  subset instead. General and Bible Subject still receive the full,
+//  unchanged PDF_BASE_CSS — this constant does not replace or modify it.
+// ─────────────────────────────────────────────
+const PDF_TM_BASE_CSS = `
+  /* ── Overflow hidden (print media override) — page-level only. ──
+     Teacher's Manual is the only renderer that keeps the browser's default
+     list-style-position:outside (General/Bible force "inside" in their own
+     CSS, so they never hit this). With "outside" positioning, a bullet/
+     number marker renders in a small box OUTSIDE the <li>'s own content
+     area. A universal "* { overflow:hidden }" (matching every element, not
+     just .page) clips that marker box while leaving the list text — which
+     sits inside the <li>'s own padding — fully visible: exactly "text
+     present, marker missing". Scoping the clip to .page only still flags
+     a genuinely overflowing PAGE (cut off at the page boundary, the
+     original purpose of this rule) without clipping markers inside it. */
+  .page { overflow: hidden !important; }
 `;
 
 // ─────────────────────────────────────────────
@@ -1296,18 +1362,26 @@ const PDF_MK_EXTRA_CSS = `
 //  Bible Subject = AK's layout/list rules, with overrideFonts turned off, so
 //  HTML-authored font-size values are never overridden — in Preview, PDF
 //  Simulation, or PDF Export.
+//
+//  Teacher's Manual (tm) also keeps overrideFonts off — its own typography
+//  scale lives entirely in PDF_TM_CSS above, so it never touches the AK
+//  font-size delta (PDF_FONT_CSS / PDF_AK_FONT_CSS).
 // ─────────────────────────────────────────────
 const RENDERER_CONFIG = {
-  sk:    { overrideFonts: true,  fontCss: '',              css: PDF_SK_CSS },
   ak:    { overrideFonts: true,  fontCss: PDF_AK_FONT_CSS,  css: PDF_AK_LIST_CSS },
-  mk:    { overrideFonts: true,  fontCss: PDF_AK_FONT_CSS,  css: PDF_MK_EXTRA_CSS + PDF_AK_LIST_CSS },
   bible: { overrideFonts: false, fontCss: PDF_AK_FONT_CSS,  css: PDF_AK_LIST_CSS },
+  tm:    { overrideFonts: false, fontCss: '',                css: PDF_TM_CSS },
 };
 
 function getPdfSimCSS(renderer) {
   const cfg = RENDERER_CONFIG[renderer] || RENDERER_CONFIG.ak;
   const imgCapPx = imgMaxH >= 99999 ? 'none' : `${imgMaxH}px`;
   const fontBlock = cfg.overrideFonts ? (PDF_FONT_CSS + cfg.fontCss) : '';
+  // Teacher's Manual HTML is already fully self-styled (see PDF_TM_BASE_CSS
+  // comment above) — it gets a minimal, non-conflicting base instead of the
+  // shared AK/Bible-oriented PDF_BASE_CSS. General and Bible Subject are
+  // completely unaffected: this only changes the 'tm' branch.
+  const baseBlock = renderer === 'tm' ? PDF_TM_BASE_CSS : PDF_BASE_CSS;
   return `<style id="pdf-sim-shim">
 /* === PDF SIMULATION SHIM (Worktext Inspector) ===
    Converts mm-based sizes to PDF-equivalent px values and applies
@@ -1316,7 +1390,7 @@ function getPdfSimCSS(renderer) {
    Toggle off with "PDF Sim" button to see raw browser rendering.
    Renderer: ${renderer}${cfg.overrideFonts ? '' : ' — font-size overrides disabled (HTML font-size values preserved)'} */
 :root { --img-max-h: ${imgCapPx}; }
-${PDF_BASE_CSS}
+${baseBlock}
 ${fontBlock}
 ${cfg.css}
 </style>`;
@@ -1457,12 +1531,9 @@ document.getElementById('folder-input').addEventListener('change', async (e) => 
 
 function autoDetectRenderer(name) {
   const n = name.toUpperCase();
-  if (n.startsWith('SK-')) {
-    document.getElementById('renderer-select').value = 'sk';
-    currentRenderer = 'sk';
-  } else if (n.match(/^MK-U1-C1-/)) {
-    document.getElementById('renderer-select').value = 'mk';
-    currentRenderer = 'mk';
+  if (n.startsWith('TM-') || n.includes('-TM-')) {
+    document.getElementById('renderer-select').value = 'tm';
+    currentRenderer = 'tm';
   } else if (n.startsWith('BIBLE-') || n.includes('-BIBLE-')) {
     document.getElementById('renderer-select').value = 'bible';
     currentRenderer = 'bible';
@@ -1908,7 +1979,7 @@ function refreshSidebarStats() {
 }
 
 function updateRendererStat() {
-  const labels = { sk: 'SK (Kinder)', ak: 'AK / General', mk: 'MK-U1-C1', bible: 'Bible Subject' };
+  const labels = { ak: 'General', bible: 'Bible Subject', tm: "Teacher's Manual" };
   document.getElementById('stat-renderer').textContent = labels[currentRenderer] || currentRenderer;
 }
 
@@ -2117,8 +2188,21 @@ async function exportToPdf(pageIndices) {
       // Inline all images as base64 so they survive the popup boundary
       await inlineIframeImages(iDoc);
 
-      // Capture full document HTML after inlining
-      const fullHtml = iDoc.documentElement.outerHTML;
+      // Teacher's Manual ships as a complete, self-styled document (its own
+      // fonts/colors/margins/page-numbering), and PDF Simulation already
+      // renders it correctly (see getPdfSimCSS()'s 'tm' branch). Capturing
+      // the WHOLE iframe document via outerHTML and nesting it inside a
+      // <div> here creates an invalid nested <html> — browsers silently
+      // reshuffle its contents to recover, which can reorder the very
+      // styles PDF Simulation relies on and is exactly why margins/lists/
+      // page-numbers can come out differently in the export than in the
+      // Simulation preview. For 'tm' only, capture the <head> styles and
+      // <body> content separately instead — both are valid directly inside
+      // a <div>, so nothing needs to be reshuffled. General/Bible keep the
+      // original outerHTML capture, unchanged.
+      const fullHtml = currentRenderer === 'tm'
+        ? `${iDoc.head.innerHTML}${iDoc.body.innerHTML}`
+        : iDoc.documentElement.outerHTML;
 
       // The preview hides .hdr on page 0 via a per-iframe <style>.
       // In the popup all pages share one CSS scope, so a later page's
@@ -2134,22 +2218,14 @@ async function exportToPdf(pageIndices) {
     }));
 
     const lessonName = currentHtmlName ? currentHtmlName.replace(/\.html$/i, '') : 'worktext';
-    const printDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${lessonName}</title>
-<style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  html,body{background:white;margin:0;padding:0;}
-  @page{size:8.5in 11in;margin:0;}
-  .wp-page{
-    width:816px; height:1056px; overflow:hidden;
-    page-break-after:always; break-after:page;
-    position:relative; background:white;
-    /* Isolate each page's CSS scope */
-    display:block;
-  }
-  .wp-page:last-child{ page-break-after:avoid; break-after:avoid; }
-  /* Reset any outer-document interference */
-  .wp-page html, .wp-page body { margin:0; padding:0; background:white; }
-
+    // Teacher's Manual defines its own list indentation (ol.q-list / ul.b-list)
+    // and PDF Simulation already leaves it untouched (RENDERER_CONFIG.tm's css
+    // is PDF_TM_CSS, which never sets list padding/indent). The block below is
+    // the AK/MK "hanging indent" convention — forcing it onto Teacher's Manual
+    // here would fight its own list rules and reproduce the misalignment this
+    // fix addresses, so it's skipped for 'tm' only. General/Bible are
+    // completely unaffected — they still receive this exact block.
+    const listCss = currentRenderer === 'tm' ? '' : `
   /* ── Bullet & numbered lists ─────────────────────────────────────────────
      Mirrors the renderer's inside-positioning fix already in getPdfSimCSS().
      Reset ul/ol default browser padding first so it doesn't stack with the
@@ -2188,7 +2264,23 @@ async function exportToPdf(pageIndices) {
   .wp-page ol.q-list {
     list-style-type: decimal !important;
     list-style-position: inside !important;
+  }`;
+    const printDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${lessonName}</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:white;margin:0;padding:0;}
+  @page{size:8.5in 11in;margin:0;}
+  .wp-page{
+    width:816px; height:1056px; overflow:hidden;
+    page-break-after:always; break-after:page;
+    position:relative; background:white;
+    /* Isolate each page's CSS scope */
+    display:block;
   }
+  .wp-page:last-child{ page-break-after:avoid; break-after:avoid; }
+  /* Reset any outer-document interference */
+  .wp-page html, .wp-page body { margin:0; padding:0; background:white; }
+${listCss}
 </style></head><body>${pageBlocks.join('\n')}</body></html>`;
 
     const popup = window.open('', '_blank', 'width=900,height=700');
