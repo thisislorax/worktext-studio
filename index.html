@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆ Worktext Studio ˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆</title>
+    <title>Worktext Studio</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23D7486F' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,18 +20,18 @@
       --accent:      #d4537e;
       --accent-dark: #993556;
       --accent-dim:  #fbe4ed;
-      --warn:        #c0395e;
+      --warn:        #D7486F;
       --warn-dim:    #fbe4ed;
-      --ok:          #2e7d32;
-      --text:        #72243e;
-      --text-mid:    #993556;
-      --muted:       #c47090;
+      --ok:          #D7486F;
+      --text:        #D7486F;
+      --text-mid:    #D7486F;
+      --muted:       #D7486F;
       --panel-w:     280px;
     }
 
     html, body {
       height: 100%;
-      font-family: 'Nunito', system-ui, sans-serif;
+      font-family: 'Lexend', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       font-size: 14px;
@@ -67,43 +68,80 @@
       margin-right: 4px;
       white-space: nowrap;
     }
+        .toolbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-right: 4px;
+      flex-shrink: 0;
+    }
+    .toolbar-logo-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--accent-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .toolbar-logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.08;
+    }
+    .toolbar-logo-text span {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #D7486F;
+    }
     .toolbar-divider {
       width: 1px;
       height: 20px;
-      background: var(--border);
       flex-shrink: 0;
     }
-    .btn {
+      .btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 5px 11px;
-      border-radius: 6px;
-      border: 1px solid var(--border-mid);
-      background: #fff;
-      color: var(--text-mid);
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      border: 1.5px solid #F0CFDE;
+      background: #FFFFFF;
+      color: #D7486F;
+      font-family: 'Lexend', system-ui, sans-serif;
       font-size: 12px;
+      font-weight: 600;
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .btn:hover { background: var(--accent-dim); }
+    .btn:hover { background: #EDA4C8; border-color: #F0CFDE; }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
+      background: #FFFFFF;
+      border-color: #F0CFDE;
+      color: #D7486F;
       font-weight: 600;
     }
-    .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn-primary:hover { background: #EDA4C8; border-color: #F0CFDE; }
     .btn-active {
-      background: var(--accent-dark);
-      border-color: var(--accent-dark);
-      color: #fff;
+      background: #EDA4C8;
+      border-color: #F0CFDE;
+      color: #D7486F;
       font-weight: 700;
     }
     .toolbar-spacer { flex: 1; min-width: 4px; }
+        .toolbar-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+      min-width: 0;
+    }
     .status-pill {
       display: inline-flex;
       align-items: center;
@@ -144,7 +182,7 @@
       letter-spacing: 0.08em;
     }
     .renderer-wrap select {
-      font-family: 'Nunito', system-ui, sans-serif;
+      font-family: 'Lexend', system-ui, sans-serif;
       font-size: 12px;
       font-weight: 600;
       color: var(--text-mid);
@@ -166,10 +204,9 @@
     }
     .sidebar-section {
       padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
     }
     .sidebar-label {
-      font-size: 10px;
+      font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -181,12 +218,12 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 9px 11px;
-      font-size: 12px;
+      font-size: 15px;
       color: var(--muted);
       line-height: 1.5;
     }
     .file-card .file-name {
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--text);
       word-break: break-all;
@@ -197,14 +234,13 @@
       justify-content: space-between;
       align-items: center;
       padding: 6px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 12px;
+      font-size: 15px;
     }
     .stat-row:last-child { border-bottom: none; }
     .stat-row .label { color: var(--muted); }
     .stat-row .value { font-weight: 600; color: var(--text); }
     .stat-row .value.warn { color: var(--warn); }
-    .stat-row .value.ok   { color: var(--ok); }
+    .stat-row .value.ok   { color: #2e7d32; }
 
     /* Mode info box */
     .mode-info {
@@ -220,7 +256,7 @@
     .mode-info.raw {
       background: #fff8e1;
       border-color: #ffe082;
-      color: #e65100;
+      color: #D7486F;
     }
 
     .page-list {
@@ -235,14 +271,14 @@
       padding: 6px 9px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 15px;
       color: var(--text-mid);
       transition: background 0.1s;
     }
     .page-list-item:hover { background: var(--accent-dim); }
     .page-list-item.active { background: var(--accent-dim); color: var(--accent-dark); font-weight: 600; }
     .page-list-item .pg-num {
-      width: 22px; height: 22px;
+      width: 25px; height: 25px;
       border-radius: 4px;
       background: var(--border);
       display: flex; align-items: center; justify-content: center;
@@ -277,9 +313,9 @@
       justify-content: space-between;
       gap: 4px;
     }
-    .pg-name-row .pg-name { font-size: 12px; }
+    .pg-name-row .pg-name { font-size: 15px; }
     .pg-name-row .pg-px {
-      font-size: 10px;
+      font-size: 12px;
       color: var(--muted);
       white-space: nowrap;
     }
@@ -308,6 +344,101 @@
       align-items: center;
       padding: 40px 32px;
       gap: 40px;
+    }
+
+    /* ── Review / Revise & Check mode system ──
+       Purely additive: wraps the existing #canvas-area (untouched) in a new
+       flex row (#workspace-row) alongside a new Google Doc reference panel.
+       #canvas-area keeps its own id, its own grid-area rule (now a no-op
+       once it's a flex child, harmless), and every existing behavior. In
+       Revise & Check mode (default, matches current app exactly) the Google
+       Doc panel is display:none and #canvas-area fills 100% via flex-grow,
+       so there is zero visual/behavioral change unless Review mode is
+       explicitly selected. */
+      .mode-switch {
+      display: flex;
+      background: #FFFFFF;
+      border: 1.5px solid #F0CFDE;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .mode-switch-btn {
+      border: none;
+      background: transparent;
+      color: #D7486F;
+      font-family: 'Lexend', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .mode-switch-btn:hover { background: #EDA4C8; }
+    .mode-switch-btn.active { background: #EDA4C8; color: #D7486F; }
+
+    #workspace-row {
+      grid-area: canvas;
+      display: flex;
+      height: 100%;
+      overflow: hidden;
+    }
+    #workspace-row > .canvas-area {
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 100%;
+    }
+    #gdoc-panel {
+      display: none;
+      flex-direction: column;
+      width: 35%;
+      min-width: 280px;
+      max-width: 640px;
+      height: 100%;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: var(--surface-mid);
+    }
+    .app.mode-review { grid-template-columns: 0 1fr; }
+    .app.mode-review .sidebar { display: none; }
+    .app.mode-review #gdoc-panel { display: flex; }
+    .app.mode-review #gdoc-panel { display: flex; }
+    .app.mode-review #comments-panel { display: none; }
+    #gdoc-panel-header {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    #gdoc-link-input {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 6px 10px;
+      border: 1px solid var(--border-mid);
+      border-radius: 6px;
+      font-family: 'Lexend', system-ui, sans-serif;
+      font-size: 13px;
+      color:  #D7486F;
+      background: #fff;
+    }
+    #gdoc-panel-body {
+      flex: 1 1 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    #gdoc-empty {
+      padding: 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    #gdoc-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
     }
     .empty-state {
       margin: auto;
@@ -375,10 +506,10 @@
       border-radius: 2px;
       flex-shrink: 0;
     }
-    .page-frame.overflow {
-      box-shadow: 0 0 0 3px var(--warn), 0 4px 24px rgba(180,80,120,0.15);
-      border-color: var(--warn);
-    }
+    :root[data-theme="dark"] .page-frame.overflow {
+    box-shadow: 0 0 0 3px #D7486F, 0 4px 24px rgba(180,80,120,0.15);
+    border-color: #D7486F;
+  }
     /* Margin guide */
     .margin-guide {
       position: absolute;
@@ -431,8 +562,8 @@
     .page-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
     /* ── Export PDF ── */
-    .btn-export { background: #2e7d32; color: #fff; border-color: #2e7d32; position: relative; }
-    .btn-export:hover:not(:disabled) { background: #1b5e20; border-color: #1b5e20; }
+    .btn-export { background: #FFFFFF; color: #D7486F; border-color: #F0CFDE; position: relative; }
+    .btn-export:hover:not(:disabled) { background: #EDA4C8; border-color: #F0CFDE; }
     .btn-export:disabled { opacity: 0.45; cursor: not-allowed; }
     .export-menu {
       display: none; position: absolute; top: calc(100% + 6px); right: 0;
@@ -458,7 +589,7 @@
     .wt-annotation {
       position: absolute;
       z-index: 9000;
-      width: 200px;
+      width: 240px;
       background: #fff0f3;
       border: 1.5px solid #f4a7bf;
       border-radius: 14px;
@@ -466,7 +597,7 @@
       font-family: 'Montserrat', sans-serif;
       font-size: 12px;
       color: #000000;
-      padding: 8px 10px 10px;
+      padding: 22px 10px 10px;
       cursor: default;
       min-width: 160px;
       max-width: 240px;
@@ -475,8 +606,10 @@
       user-select: none;
     }
     .wt-annotation:hover { box-shadow: 0 6px 24px rgba(180,80,130,0.26), 0 1px 4px rgba(180,80,130,0.12); }
-    .wt-annotation.collapsed .note-body { display: none; }
-    .wt-annotation.collapsed .note-time { display: none; }
+    .wt-annotation.collapsed .note-body    { display: none; }
+    .wt-annotation.collapsed .note-time    { display: none; }
+    .wt-annotation.collapsed .note-display { display: none; }
+    .wt-annotation.collapsed .note-hint    { display: none; }
 
     /* Doodle strawberry header */
     .note-strawberry {
@@ -520,7 +653,7 @@
       border: none;
       outline: none;
       resize: none;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Lexend', sans-serif;
       font-size: 12px;
       color: #000000;
       line-height: 1.55;
@@ -539,6 +672,34 @@
       padding: 2px 4px;
     }
     .note-body::placeholder { color: #d4a0b8; }
+
+    /* Display mode — shown instead of the textarea while not actively
+       editing, so a link typed into the comment renders as clickable text. */
+    .note-display {
+      width: 100%;
+      font-family: 'Lexend', sans-serif;
+      font-size: 12px;
+      color: #000000;
+      line-height: 1.55;
+      min-height: 38px;
+      word-break: break-word;
+      white-space: pre-wrap;
+      cursor: text;
+    }
+    .note-display a {
+      color: #1a5fb4;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
+    /* Instruction below the comment text, not part of the comment itself */
+    .note-hint {
+      font-size: 9px;
+      color: #c98bab;
+      font-style: italic;
+      text-align: right;
+      margin-top: 3px;
+    }
 
     /* Timestamp */
     .note-time {
@@ -578,16 +739,18 @@
 
 
     /* Sidebar comments panel — always visible */
-    .comments-panel {
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      max-height: 380px;
-      overflow: hidden;
-    }
+   .comments-panel {
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+    flex-shrink: 0;
+    height: 100%;
+    overflow: hidden;
+}
     .comments-panel-header {
       padding: 8px 14px 6px;
-      font-size: 10px;
+      font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -622,18 +785,25 @@
       border-radius: 7px;
       cursor: pointer;
       transition: background 0.1s;
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-mid);
       line-height: 1.45;
     }
     .comment-entry:hover { background: var(--accent-dim); }
     .comment-entry .ce-page {
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--muted);
       white-space: nowrap;
       flex-shrink: 0;
       margin-top: 1px;
+    }
+    /* Review-state dot: yellow = not yet addressed, green = content changed
+       since flagged (permanent once set), grey = original content not found. */
+    .comment-entry .ce-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0; margin-top: 4px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.12) inset;
     }
     .comment-entry .ce-text {
       flex: 1;
@@ -667,7 +837,7 @@
     min-width: 280px;
     max-width: 360px;
     text-align: center;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Lexend', sans-serif;
     color: #000;
     position: relative;
     animation: wt-modal-pop 0.15s ease;
@@ -698,7 +868,17 @@
   .wt-modal-btn {
     padding: 8px 28px;
     border-radius: 8px;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Lexend', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid;
+    transition: background 0.13s, border-color 0.13s;
+  }
+    .wt-modal-btn {
+    padding: 8px 28px;
+    border-radius: 8px;
+    font-family: 'Lexend', system-ui, sans-serif;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -706,17 +886,17 @@
     transition: background 0.13s, border-color 0.13s;
   }
   .wt-modal-btn-yes {
-    background: #d4537e;
-    border-color: #d4537e;
-    color: #fff;
+    background: #EDA4C8;
+    border-color: #F0CFDE;
+    color: #D7486F;
   }
-  .wt-modal-btn-yes:hover { background: #993556; border-color: #993556; }
+  .wt-modal-btn-yes:hover { background: #EDA4C8; border-color: #F0CFDE; }
   .wt-modal-btn-no {
     background: #fff;
-    border-color: #f4a7bf;
-    color: #993556;
+    border-color: #F0CFDE;
+    color: #D7486F;
   }
-  .wt-modal-btn-no:hover { background: #fbe4ed; }
+  .wt-modal-btn-no:hover { background: #fff; border-color: #F0CFDE; }
 
   /* ═════════════════════════════════════════════
      CHLOE — Worktext Studio Companion
@@ -753,7 +933,7 @@
     border-radius: 16px;
     box-shadow: 0 6px 16px rgba(180,80,130,0.16);
     padding: 0;
-    font-family: 'Nunito', system-ui, sans-serif;
+    font-family: 'Lexend', system-ui, sans-serif;
     color: #4a2f45;
     opacity: 0;
     transform: translateY(-6px) scale(0.96);
@@ -790,7 +970,7 @@
     gap: 8px;
   }
   .chloe-bubble-text {
-    font-family: 'Nunito', system-ui, sans-serif;
+    font-family: 'Lexend', system-ui, sans-serif;
     font-size: 12px;
     font-weight: 700;
     line-height: 1.45;
@@ -826,7 +1006,7 @@
     margin-top: 9px;
   }
   .chloe-bubble-btn {
-    font-family: 'Nunito', system-ui, sans-serif;
+    font-family: 'Lexend', system-ui, sans-serif;
     font-size: 10.5px;
     font-weight: 700;
     padding: 5px 9px;
@@ -856,6 +1036,96 @@
     .chloe-bubble-text { font-size: 10.5px; }
   }
 
+  /* ═════════════════════════════════════════════
+     LIGHT / DARK MODE — Worktext Studio's own
+     interface chrome only (toolbar, sidebar, canvas
+     backdrop, buttons, panels). Never touches the
+     .page-frame / .page-iframe (the worktext preview
+     itself always stays on white "paper"), never
+     touches PDF Simulation CSS, and never touches the
+     yellow/green/grey review highlight colors — those
+     all live inside the iframes and are untouched by
+     this block on purpose.
+     ═════════════════════════════════════════════ */
+      :root[data-theme="dark"] {
+    --bg:          #1b1520;
+    --surface:     #241b2b;
+    --surface-mid: #2a2033;
+    --border:      #3d2f47;
+    --border-mid:  #52405e;
+    --accent:      #e07a9e;
+    --accent-dark: #f4a7bf;
+    --accent-dim:  #3a2a3f;
+    --warn:        #D7486F;
+    --warn-dim:    #3a2a2a;
+    --ok:          #7cd992;
+    --text:        #D7486F;
+    --text-mid:    #D7486F;
+    --muted:       #D7486F;
+  }
+  /* A handful of shell controls hardcode a white card background instead of
+     a variable — patch just those, scoped to dark mode, rather than touching
+     their existing (light-mode) rules above. */
+    :root[data-theme="dark"] .renderer-wrap select,
+  :root[data-theme="dark"] .status-pill,
+  :root[data-theme="dark"] .file-card,
+  :root[data-theme="dark"] .export-menu {
+    background: var(--surface);
+    color: var(--text-mid);
+  }
+  :root[data-theme="dark"] .status-pill.ok   { background: var(--surface); }
+  :root[data-theme="dark"] .status-pill.warn { background: var(--surface); }
+  :root[data-theme="dark"] .page-list-item:hover { background: var(--accent-dim); }
+
+  :root[data-theme="dark"] .btn,
+  :root[data-theme="dark"] .btn-primary,
+  :root[data-theme="dark"] .btn-export {
+    background: #000000;
+    color: #D7486F;
+    border-color: #D7486F;
+  }
+  :root[data-theme="dark"] .mode-switch { background: #000000; border-color: #D7486F; }
+  :root[data-theme="dark"] #gdoc-link-input { background: #000000; border-color: #D7486F; }
+  :root[data-theme="dark"] .mode-switch-btn { color: #D7486F; }
+  :root[data-theme="dark"] .mode-switch-btn:hover,
+  :root[data-theme="dark"] .mode-switch-btn.active { background: #EDA4C8; color: #D7486F; }
+  :root[data-theme="dark"] .btn:hover,
+  :root[data-theme="dark"] .btn-primary:hover,
+  :root[data-theme="dark"] .btn-export:hover:not(:disabled) {
+    background: #EDA4C8;
+    border-color: #D7486F;
+    color: #D7486F;
+  }
+  :root[data-theme="dark"] .btn-active {
+    background: #EDA4C8;
+    border-color: #D7486F;
+    color: #D7486F;
+  }
+  /* Theme toggle switch — sits beside the status pill (the toolbar's
+     overflow indicator), upper-right of the interface. */
+    .theme-toggle-switch {
+    position: relative; display: inline-flex; align-items: center;
+    width: 52px; height: 28px; border-radius: 999px; flex-shrink: 0;
+    border: 1.5px solid #F0CFDE; background: #fff; cursor: pointer;
+    padding: 0; transition: background 0.15s, border-color 0.15s;
+  }
+  .theme-toggle-switch:hover { border-color: var(--accent, #d4537e); }
+  .theme-toggle-switch .tts-thumb {
+    position: absolute; top: 2px; left: 2px; width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: #FFFFFF;
+    border: 1px solid #F0CFDE;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  }
+  .theme-toggle-switch[aria-checked="true"] { background: var(--surface); border-color: #D7486F; }
+  .theme-toggle-switch[aria-checked="true"] .tts-thumb {
+    transform: translateX(26px);
+    background: #EDA4C8;
+    border-color: #EDA4C8;
+  }
+
   </style>
 </head>
 <body>
@@ -864,51 +1134,83 @@
 
   <!-- Toolbar -->
   <header class="toolbar">
-    <span class="toolbar-brand">˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆ Worktext Studio ˚˖𓍢ִ໋🌷͙֒✧˚.🎀༘⋆</span>
-    <div class="toolbar-divider"></div>
-    <button class="btn btn-primary" id="btn-open" title="Pick your worktext HTML file — gets a live handle so Ctrl+S in VS Code is picked up automatically">
-      📄 Open HTML File
-    </button>
-    <label class="btn" id="btn-open-images" style="cursor:pointer;" title="Pick the folder containing your images (optional)">
-      🖼 Images Folder
-      <input type="file" id="folder-input" webkitdirectory multiple style="display:none;" />
-    </label>
-    <button class="btn" id="btn-refresh" disabled>🔄 Refresh</button>
-    <div class="toolbar-divider"></div>
-    <div class="renderer-wrap">
-      <label for="renderer-select">Renderer</label>
-      <select id="renderer-select">
-        <option value="ak">General</option>
-        <option value="bible">Bible Subject</option>
-        <option value="tm">Teacher's Manual</option>
-      </select>
-    </div>
-    <div class="toolbar-divider"></div>
-    <button class="btn" id="btn-pdf-mode" title="Toggle PDF simulation (applies renderer font/image overrides and corrects mm units)">
-      🖨 PDF Sim: OFF
-    </button>
-
-    <div class="toolbar-divider"></div>
-    <button class="btn" id="btn-save-reviewed" title="Save a reviewed HTML file with all annotation data embedded" disabled>
-      💾 Save Reviewed HTML
-    </button>
-    <div class="toolbar-divider"></div>
-    <div style="position:relative;">
-      <button class="btn btn-export" id="btn-export" disabled>📥 Export PDF ▾</button>
-      <div class="export-menu" id="export-menu">
-        <div class="export-menu-label">Export options</div>
-        <button class="export-menu-item" id="export-all">
-          📄 All Pages
-          <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-all-count"></span>
-        </button>
-        <div class="export-menu-divider"></div>
-        <button class="export-menu-item" id="export-current">
-          🔖 Current Page Only
-          <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-current-num"></span>
-        </button>
+       <div class="toolbar-logo">
+      <div class="toolbar-logo-icon">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#d4537e" stroke="#d4537e" stroke-width="1.6" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="toolbar-logo-text">
+        <span>WORKTEXT</span>
+        <span>STUDIO</span>
       </div>
     </div>
-    <div class="toolbar-spacer"></div>
+        <div class="toolbar-center">
+      <div class="toolbar-divider"></div>
+      <div class="mode-switch" id="mode-switch">
+        <button class="mode-switch-btn" id="mode-btn-review" data-mode="review" title="View the Google Docs storyboard side by side with the Worktext HTML">Review</button>
+        <button class="mode-switch-btn active" id="mode-btn-revise" data-mode="revise" title="The existing Worktext Studio interface, unchanged">Revise &amp; Check</button>
+      </div>
+      <div class="toolbar-divider"></div>
+      <button class="btn btn-primary" id="btn-open" title="Pick your worktext HTML file — gets a live handle so Ctrl+S in VS Code is picked up automatically">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+      Open HTML File
+    </button>
+      <label class="btn" id="btn-open-images" style="cursor:pointer;" title="Pick the folder containing your images (optional)">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5-5-4 4-3-3-6 6"/></svg>
+      Images Folder
+      <input type="file" id="folder-input" webkitdirectory multiple style="display:none;" />
+    </label>
+      <button class="btn" id="btn-refresh" disabled>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 1 0 18.5 16"/><path d="M20 5v6h-6"/></svg>
+      
+    </button>
+      <div class="toolbar-divider"></div>
+      <div class="renderer-wrap">
+        <label for="renderer-select">Renderer</label>
+        <select id="renderer-select">
+          <option value="ak">K-G3</option>
+          <option value="g46">G4-G6</option>
+          <option value="bible">Bible Subject</option>
+          <option value="tm">Teacher's Manual</option>
+        </select>
+      </div>
+      <div class="toolbar-divider"></div>
+      <button class="btn" id="btn-pdf-mode" title="Toggle PDF simulation (applies renderer font/image overrides and corrects mm units)">
+      PDF Sim: OFF
+    </button>
+
+      <button class="btn" id="btn-save-reviewed" title="Save a reviewed HTML file with all annotation data embedded" disabled>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h12l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M8 3v6h8V3"/><path d="M8 21v-7h8v7"/></svg>
+      Save Reviewed HTML
+    </button>
+      <div class="toolbar-divider"></div>
+      <div style="position:relative;">
+                <button class="btn btn-export" id="btn-export" disabled>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
+          Export PDF ▾
+        </button>
+        <div class="export-menu" id="export-menu">
+          <div class="export-menu-label">Export options</div>
+          <button class="export-menu-item" id="export-all">
+            📄 All Pages
+            <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-all-count"></span>
+          </button>
+          <div class="export-menu-divider"></div>
+          <button class="export-menu-item" id="export-current">
+            🔖 Current Page Only
+            <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-current-num"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+        <button class="theme-toggle-switch" id="theme-toggle-btn" role="switch" aria-checked="false" title="Switch between Light and Dark mode (interface only — never changes the worktext itself)">
+      <span class="tts-thumb">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="#D7486F" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </span>
+    </button>
     <span class="status-pill" id="status-pill">
       <span class="dot"></span>No file loaded
     </span>
@@ -936,48 +1238,67 @@
       </div>
       <div class="stat-row">
         <span class="label">Renderer</span>
-        <span class="value" id="stat-renderer">General</span>
+        <span class="value" id="stat-renderer">K-G3</span>
       </div>
       <div class="stat-row">
         <span class="label">PDF Sim</span>
         <span class="value" id="stat-pdf-sim">Off</span>
       </div>
-      <div class="stat-row">
+            <div class="stat-row" style="display:none;">
         <span class="label">Watching</span>
         <span class="value" id="stat-watch">—</span>
       </div>
     </div>
 
-    <div id="mode-info-wrap"></div>
+        <div id="mode-info-wrap" style="display:none;"></div>
 
     <div class="sidebar-label" style="padding:10px 14px 4px;">Pages</div>
     <div class="page-list" id="page-list">
       <div style="padding:8px 10px;color:var(--muted);font-size:12px;">No pages yet.</div>
     </div>
 
-    <!-- Comments panel -->
+      </aside>
+
+  <!-- Canvas (+ Review Mode's Google Doc panel, added alongside it) -->
+  <div id="workspace-row">
+
+    <!-- Google Doc reference panel — only shown in Review Mode (.app.mode-review).
+         The doc renders inside an <iframe>, which is its own scrollable browsing
+         context, so it scrolls independently and never affects the Worktext
+         HTML panel's or the page's own scrolling. -->
+    <div id="gdoc-panel">
+      <div id="gdoc-panel-header">
+        <input type="text" id="gdoc-link-input" placeholder="Paste Google Docs link…">
+        <button class="btn" id="gdoc-load-btn">Load Google Doc</button>
+      </div>
+      <div id="gdoc-panel-body">
+        <div id="gdoc-empty">Paste the Google Docs link above and click <strong>Load Google Doc</strong> to display it here for reference while you review the Worktext HTML.</div>
+        <iframe id="gdoc-iframe" title="Google Docs storyboard" style="display:none;"></iframe>
+      </div>
+    </div>
+
+    <main class="canvas-area" id="canvas-area">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon"></div>
+        <h2>No file loaded</h2>
+        <p>Click <strong>Open HTML File</strong> to select your worktext HTML. The preview will live-update every time you save in VS Code.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('btn-open').click()">
+          Open HTML File
+        </button>
+      </div>
+    </main>
+
+    <!-- Comments panel — moved here from the sidebar so it sits on the right -->
     <div class="comments-panel" id="comments-panel">
       <div class="comments-panel-header">
-        🍓 Review Comments
+        Review Comments
         <span class="comments-panel-count" id="comments-panel-count">0</span>
       </div>
       <div class="comments-list" id="comments-list">
         <div class="comments-empty">No comments yet.<br>Highlight text or click an image to add a comment.</div>
       </div>
     </div>
-  </aside>
-
-  <!-- Canvas -->
-  <main class="canvas-area" id="canvas-area">
-    <div class="empty-state" id="empty-state">
-      <div class="empty-icon">📄</div>
-      <h2>No file loaded</h2>
-      <p>Click <strong>Open HTML File</strong> to select your worktext HTML. The preview will live-update every time you save in VS Code.</p>
-      <button class="btn btn-primary" onclick="document.getElementById('btn-open').click()">
-        📄 Open HTML File
-      </button>
-    </div>
-  </main>
+  </div>
 
 </div>
 
@@ -1254,6 +1575,26 @@ const PDF_AK_LIST_CSS = `
 const PDF_AK_CSS = PDF_AK_FONT_CSS + PDF_AK_LIST_CSS;
 
 // ─────────────────────────────────────────────
+//  G4-G6 — font-size-only delta on top of K-G3 (AK)
+//  Same layout/list rules as K-G3 (reuses PDF_AK_LIST_CSS below in
+//  RENDERER_CONFIG). Only font sizes/line-heights differ, per spec.
+// ─────────────────────────────────────────────
+const PDF_G46_FONT_CSS = `
+  .sec-banner .sec-label { font-size: 30px !important; line-height: 1.5 !important; }
+  .act-h                 { font-size: 21px !important; line-height: 1.5 !important; }
+  .doc-title              { font-size: 27px !important; line-height: 1.5 !important; }
+  .hdr-title { font-size: 18px !important; }
+  .hdr-sub   { font-size: 15px !important; line-height: 2.1 !important; }
+  .body-p, p, li { font-size: 17px !important; line-height: 1.5 !important; }
+  .obj-box, .obj-box p, .obj-box li, .obj-box div,
+  .eq-box,  .eq-box p,  .eq-box li,  .eq-box div,
+  .mat-box, .mat-box p, .mat-box li, .mat-box div { font-size: 17px !important; line-height: 1.5 !important; }
+  .ci-obj h4, .ci-eq h4, .ci-mat h4 { font-size: 17px !important; }
+  .ci-obj .body-p, .ci-obj li,
+  .ci-eq  .body-p, .ci-eq  li,
+  .ci-mat .body-p, .ci-mat li { font-size: 17px !important; }
+`;
+// ─────────────────────────────────────────────
 //  TEACHER'S MANUAL — standalone renderer delta
 //
 //  New renderer, independent of General (AK) and Bible Subject. Rules are
@@ -1371,6 +1712,7 @@ const RENDERER_CONFIG = {
   ak:    { overrideFonts: true,  fontCss: PDF_AK_FONT_CSS,  css: PDF_AK_LIST_CSS },
   bible: { overrideFonts: false, fontCss: PDF_AK_FONT_CSS,  css: PDF_AK_LIST_CSS },
   tm:    { overrideFonts: false, fontCss: '',                css: PDF_TM_CSS },
+  g46:   { overrideFonts: true,  fontCss: PDF_G46_FONT_CSS, css: PDF_AK_LIST_CSS },
 };
 
 function getPdfSimCSS(renderer) {
@@ -1558,7 +1900,7 @@ function showPicker(title, options) {
     box.style.cssText = `
       background:#fff;border:1px solid #f4c0d1;border-radius:12px;
       padding:24px;min-width:320px;max-width:480px;
-      font-family:'Nunito',system-ui,sans-serif;
+      font-family:'Lexend',system-ui,sans-serif;
       box-shadow:0 8px 32px rgba(180,80,120,0.18);
     `;
     box.innerHTML = `
@@ -1568,7 +1910,7 @@ function showPicker(title, options) {
         <button id="picker-cancel" style="
           padding:5px 14px;border-radius:6px;border:1px solid #f4c0d1;
           background:#fff;color:#993556;font-size:13px;cursor:pointer;
-          font-family:'Nunito',system-ui,sans-serif;
+          font-family:'Lexend',system-ui,sans-serif;
         ">Cancel</button>
       </div>
     `;
@@ -1582,7 +1924,7 @@ function showPicker(title, options) {
         text-align:left;padding:8px 12px;border-radius:6px;
         border:1px solid #f4c0d1;background:#fdf0f4;
         color:#72243e;font-size:13px;cursor:pointer;width:100%;
-        font-family:'Nunito',system-ui,sans-serif;
+        font-family:'Lexend',system-ui,sans-serif;
       `;
       btn.addEventListener('mouseenter', () => btn.style.background = '#fbe4ed');
       btn.addEventListener('mouseleave', () => btn.style.background = '#fdf0f4');
@@ -1979,7 +2321,7 @@ function refreshSidebarStats() {
 }
 
 function updateRendererStat() {
-  const labels = { ak: 'General', bible: 'Bible Subject', tm: "Teacher's Manual" };
+  const labels = { ak: 'K-G3', bible: 'Bible Subject', tm: "Teacher's Manual", g46: 'G4-G6' };
   document.getElementById('stat-renderer').textContent = labels[currentRenderer] || currentRenderer;
 }
 
@@ -2387,9 +2729,29 @@ mark.wt-hl {
   border-radius: 2px;
   padding: 0 1px;
 }
+/* Green = content changed since flagged (permanent once triggered, even if
+   later reverted). Does NOT mean the change is correct — just that it
+   happened and should be reviewed. */
+mark.wt-hl.wt-hl-green {
+  background: #a8e6a1 !important;
+}
 img.wt-img-commented {
   outline: 2.5px solid #f5a623 !important;
   outline-offset: 2px;
+}
+img.wt-img-commented.wt-img-changed {
+  outline-color: #6cc264 !important;
+}
+/* Grey = the originally flagged content could not be found at all (e.g. the
+   whole paragraph was deleted). We can't point at the exact sentence
+   anymore, so the nearest block that used to contain it is shaded instead —
+   this is a review-only indicator and is stripped before PDF export, same
+   as the yellow/green marks. */
+.wt-para-changed {
+  background: rgba(150,150,150,0.16) !important;
+  outline: 1.5px dashed rgba(120,120,120,0.55) !important;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 </style>
 <script id="wt-review-script">
@@ -2549,8 +2911,12 @@ img.wt-img-commented {
         try { p.normalize(); } catch(e) {}
       });
       document.querySelectorAll('img.wt-img-commented').forEach(function(img){
-        img.classList.remove('wt-img-commented');
+        img.classList.remove('wt-img-commented', 'wt-img-changed');
         img.removeAttribute('data-ann-id');
+      });
+      document.querySelectorAll('.wt-para-changed').forEach(function(el){
+        el.classList.remove('wt-para-changed');
+        el.removeAttribute('data-ann-id-grey');
       });
       post({ type:'wt-strip-done' });
     }
@@ -2655,14 +3021,22 @@ window.addEventListener('message', (e) => {
       id: ++annotIdSeq, pageIndex: d.pageIndex, type: 'text',
       x, y, text: '', time: new Date().toISOString(), collapsed: false,
       highlightData: d.highlightData, highlightText: d.highlightText || '',
-      imgSrc: null, imgIndex: 0
+      imgSrc: null, imgIndex: 0,
+      // Content-based anchor (survives Prettier reformatting + page insertions —
+      // see wtCaptureTextAnchor). reviewState/everChanged drive the yellow/green/grey
+      // indicator; a brand-new comment always starts as an exact, unchanged match.
+      anchor: null, reviewState: 'yellow', everChanged: false
     };
     annotations.push(ann);
     // Confirm the real id back to the iframe to update the mark element
     const iframe = document.getElementById(`iframe-${d.pageIndex}`);
-    if (iframe) iframe.contentWindow.postMessage({ cmd: 'confirm-highlight', pageIndex: d.pageIndex, tmpId: d.tmpId, annId: ann.id }, '*');
+    if (iframe) {
+      try { ann.anchor = wtCaptureTextAnchor(iframe.contentDocument, d.tmpId); } catch (e) {}
+      iframe.contentWindow.postMessage({ cmd: 'confirm-highlight', pageIndex: d.pageIndex, tmpId: d.tmpId, annId: ann.id }, '*');
+    }
     const noteEl = createNoteEl(ann);
-    frame.appendChild(noteEl);
+    const wrapperEl = document.getElementById(`wrapper-${d.pageIndex}`) || frame;
+    wrapperEl.appendChild(noteEl);
     setTimeout(() => { const ta = noteEl.querySelector('.note-body'); if (ta) ta.focus(); }, 60);
     saveAnnotationState(); refreshCommentsSidebar();
   }
@@ -2677,14 +3051,22 @@ window.addEventListener('message', (e) => {
       id: ++annotIdSeq, pageIndex: d.pageIndex, type: 'image',
       x, y, text: '', time: new Date().toISOString(), collapsed: false,
       highlightData: null, highlightText: '',
-      imgSrc: d.imgSrc, imgIndex: d.imgIndex || 0
+      imgSrc: d.imgSrc, imgIndex: d.imgIndex || 0,
+      // Content-based anchor for images: a fingerprint of the actual image
+      // bytes, so a silent file-swap under the same filename is detected
+      // as "changed" even though the filename/position looks identical.
+      imgAnchor: null, reviewState: 'yellow', everChanged: false
     };
     annotations.push(ann);
     // Add marker to the img
     const iframe = document.getElementById(`iframe-${d.pageIndex}`);
-    if (iframe) iframe.contentWindow.postMessage({ cmd: 'restore-img-markers', pageIndex: d.pageIndex, items: [{ annId: ann.id, imgSrc: ann.imgSrc, imgIndex: ann.imgIndex }] }, '*');
+    if (iframe) {
+      iframe.contentWindow.postMessage({ cmd: 'restore-img-markers', pageIndex: d.pageIndex, items: [{ annId: ann.id, imgSrc: ann.imgSrc, imgIndex: ann.imgIndex }] }, '*');
+      wtCaptureImageAnchor(iframe.contentDocument, ann).catch(() => {});
+    }
     const noteEl = createNoteEl(ann);
-    frame.appendChild(noteEl);
+    const wrapperEl = document.getElementById(`wrapper-${d.pageIndex}`) || frame;
+    wrapperEl.appendChild(noteEl);
     setTimeout(() => { const ta = noteEl.querySelector('.note-body'); if (ta) ta.focus(); }, 60);
     saveAnnotationState(); refreshCommentsSidebar();
   }
@@ -2700,8 +3082,7 @@ function showDeleteModal(onConfirm) {
   const modal = document.createElement('div');
   modal.className = 'wt-modal';
   modal.innerHTML = `
-    <div class="wt-modal-berry">${STRAWBERRY_SVG}</div>
-    <div class="wt-modal-title">The spark is gone. 💔\nDelete this comment?</div>
+    <div class="wt-modal-title">am I that easy to let go?\</div>
     <div class="wt-modal-btns">
       <button class="wt-modal-btn wt-modal-btn-yes" id="wt-del-yes">Yes</button>
       <button class="wt-modal-btn wt-modal-btn-no"  id="wt-del-no">No</button>
@@ -2754,12 +3135,25 @@ function showNoCommentsModal() {
 // ─────────────────────────────────────────────
 //  CREATE NOTE ELEMENT
 // ─────────────────────────────────────────────
+// Notes now live in the page's gutter (to the right of the 816px page,
+// like a margin comment in Google Docs) instead of floating over the
+// content. ann.y keeps its original meaning — vertical position relative
+// to the top of the page/frame — so this is purely about where we render
+// it, not a change to the saved data's meaning. ann.x is only meaningful
+// once it's been placed in the gutter (>= WT_GUTTER_X); older saved notes
+// (positioned inside the page under the previous layout) are nudged into
+// the gutter the first time they're rendered.
+const WT_GUTTER_X = 840; // 816px page width + 24px gap
+
 function createNoteEl(ann) {
   const note = document.createElement('div');
   note.className = 'wt-annotation' + (ann.collapsed ? ' collapsed' : '');
   note.id = `ann-${ann.id}`;
+  if (ann.x == null || ann.x < 816) ann.x = WT_GUTTER_X;
+  const frameEl  = document.getElementById(`frame-${ann.pageIndex}`);
+  const frameTop = frameEl ? frameEl.offsetTop : 0;
   note.style.left = ann.x + 'px';
-  note.style.top  = ann.y + 'px';
+  note.style.top  = (frameTop + (ann.y || 60)) + 'px';
 
   // Drag handle
   const drag = document.createElement('div');
@@ -2768,11 +3162,6 @@ function createNoteEl(ann) {
   for (let i = 0; i < 6; i++) { const dot = document.createElement('span'); drag.appendChild(dot); }
   note.appendChild(drag);
 
-  // Strawberry
-  const berry = document.createElement('div');
-  berry.className = 'note-strawberry';
-  berry.innerHTML = STRAWBERRY_SVG;
-  note.appendChild(berry);
 
   // Context label
   if (ann.type === 'text' && ann.highlightText) {
@@ -2822,13 +3211,36 @@ function createNoteEl(ann) {
       saveAnnotationState(); refreshCommentsSidebar();
     });
   });
+  const linkBtn = document.createElement('button');
+  linkBtn.className = 'note-action-btn';
+  linkBtn.title = 'Insert a link';
+  linkBtn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11.5 4.5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L12.5 19.5"/></svg>';
+  linkBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showEditing();
+    body.focus();
+    // No protocol is pre-filled — just a plain placeholder, selected so
+    // pasting a real link immediately replaces it. Nothing here counts as
+    // a link until the user's own URL is actually there (wtLinkify only
+    // matches real http(s):// text), so there's nothing half-formed for
+    // the display mode to try to linkify.
+    const insertText = '[paste link here]';
+    const start = body.selectionStart != null ? body.selectionStart : body.value.length;
+    const end   = body.selectionEnd   != null ? body.selectionEnd   : body.value.length;
+    body.value = body.value.slice(0, start) + insertText + body.value.slice(end);
+    ann.text = body.value;
+    body.selectionStart = start;
+    body.selectionEnd   = start + insertText.length;
+    autoGrow(); saveAnnotationState(); refreshCommentsSidebar();
+  });
+  actions.appendChild(linkBtn);
   actions.appendChild(deleteBtn);
   note.appendChild(actions);
 
-  // Textarea
+  // Textarea (the real editable comment \u2014 always the source of truth)
   const body = document.createElement('textarea');
   body.className = 'note-body';
-  body.placeholder = 'Type your comment\u2026 (Enter to save)';
+  body.placeholder = 'Type your comment\u2026';
   body.value = ann.text;
   body.rows = 2;
   function autoGrow() { body.style.height = 'auto'; body.style.height = body.scrollHeight + 'px'; }
@@ -2836,10 +3248,45 @@ function createNoteEl(ann) {
   body.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); body.blur(); saveAnnotationState(); refreshCommentsSidebar(); }
   });
-  body.addEventListener('focus', (e) => e.stopPropagation());
+  body.addEventListener('focus', (e) => { e.stopPropagation(); showEditing(); });
   body.addEventListener('mousedown', (e) => e.stopPropagation());
+  body.addEventListener('blur', () => showDisplay());
   note.appendChild(body);
   setTimeout(autoGrow, 0);
+
+  // Display mode \u2014 while NOT actively editing, any web address in the
+  // comment renders as clickable blue text. While typing, it's a plain
+  // text box (the textarea above), same as it's always been.
+  const displayEl = document.createElement('div');
+  displayEl.className = 'note-display';
+  function wtEscapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function wtLinkify(text) {
+    return wtEscapeHtml(text || '')
+      .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1<\/a>')
+      .replace(/\n/g, '<br>');
+  }
+  function showEditing() { body.style.display = ''; displayEl.style.display = 'none'; }
+  function showDisplay() {
+    if (ann.text && ann.text.trim()) {
+      displayEl.innerHTML = wtLinkify(ann.text);
+      body.style.display = 'none'; displayEl.style.display = '';
+    } else {
+      showEditing();
+    }
+  }
+  displayEl.addEventListener('mousedown', (e) => e.stopPropagation());
+  displayEl.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') return; // let the link open normally
+    showEditing(); body.focus();
+  });
+  note.appendChild(displayEl);
+  showDisplay();
+
+  // Instruction \u2014 outside the comment text itself, bottom-right of the note.
+  const hint = document.createElement('div');
+  hint.className = 'note-hint';
+  hint.textContent = 'Press Enter to save the comment';
+  note.appendChild(hint);
 
   // Timestamp
   const timeEl = document.createElement('div');
@@ -2847,16 +3294,19 @@ function createNoteEl(ann) {
   timeEl.textContent = formatTime(ann.time);
   note.appendChild(timeEl);
 
-  // Drag-to-move
+  // Drag-to-move \u2014 the note now lives in the page's gutter rather than only
+  // over the 816x1056 page, so it can range across the wider wrapper area.
   drag.addEventListener('mousedown', (e) => {
     e.preventDefault(); e.stopPropagation();
+    const frameEl  = document.getElementById(`frame-${ann.pageIndex}`);
+    const frameTop = frameEl ? frameEl.offsetTop : 0;
     const startX = e.clientX - note.offsetLeft;
     const startY = e.clientY - note.offsetTop;
     function onMove(ev) {
-      let nx = Math.max(0, Math.min(816  - note.offsetWidth,  ev.clientX - startX));
-      let ny = Math.max(0, Math.min(1056 - note.offsetHeight, ev.clientY - startY));
+      let nx = Math.max(0, Math.min(WT_GUTTER_X + 400 - note.offsetWidth, ev.clientX - startX));
+      let ny = Math.max(0, Math.min(frameTop + 1056 - note.offsetHeight, ev.clientY - startY));
       note.style.left = nx + 'px'; note.style.top = ny + 'px';
-      ann.x = nx; ann.y = ny;
+      ann.x = nx; ann.y = ny - frameTop;
     }
     function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); saveAnnotationState(); }
     document.addEventListener('mousemove', onMove);
@@ -2864,6 +3314,26 @@ function createNoteEl(ann) {
   });
 
   return note;
+}
+
+// Move each note to its (possibly new, after reconciliation) page and
+// re-align it vertically with that page's frame. Used after content
+// anchoring may have relocated a comment to a different page — e.g. the
+// LXD inserted a blank page before it, so the actual content, and now the
+// note, moved from page 6 to page 7.
+function wtRepositionNotes() {
+  annotations.forEach(ann => {
+    const note = document.getElementById(`ann-${ann.id}`);
+    if (!note) return;
+    const wrapperEl = document.getElementById(`wrapper-${ann.pageIndex}`);
+    if (!wrapperEl) return;
+    if (note.parentElement !== wrapperEl) wrapperEl.appendChild(note);
+    const frameEl  = document.getElementById(`frame-${ann.pageIndex}`);
+    const frameTop = frameEl ? frameEl.offsetTop : 0;
+    if (ann.x == null || ann.x < 816) ann.x = WT_GUTTER_X;
+    note.style.left = ann.x + 'px';
+    note.style.top  = (frameTop + (ann.y || 60)) + 'px';
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -2876,10 +3346,16 @@ function restoreAnnotations(data) {
   data.forEach(ann => {
     if (annotIdSeq < ann.id) annotIdSeq = ann.id;
     if (!ann.type) ann.type = 'text'; // back-compat
+    // back-compat: comments saved before the content-anchoring / review-state
+    // upgrade won't have these fields yet — default them rather than crash.
+    if (!ann.reviewState) ann.reviewState = 'yellow';
+    if (ann.everChanged === undefined) ann.everChanged = false;
+    if (ann.type === 'text'  && ann.anchor    === undefined) ann.anchor    = null;
+    if (ann.type === 'image' && ann.imgAnchor === undefined) ann.imgAnchor = null;
     annotations.push(ann);
-    const frame = document.getElementById(`frame-${ann.pageIndex}`);
-    if (!frame) return;
-    frame.appendChild(createNoteEl(ann));
+    const wrapperEl = document.getElementById(`wrapper-${ann.pageIndex}`);
+    if (!wrapperEl) return;
+    wrapperEl.appendChild(createNoteEl(ann));
   });
   restoreAllIframeMarkings();
   refreshCommentsSidebar();
@@ -2891,9 +3367,9 @@ function restoreAnnotations(data) {
 function reattachAnnotations() {
   document.querySelectorAll('.wt-annotation').forEach(el => el.remove());
   annotations.forEach(ann => {
-    const frame = document.getElementById(`frame-${ann.pageIndex}`);
-    if (!frame) return;
-    frame.appendChild(createNoteEl(ann));
+    const wrapperEl = document.getElementById(`wrapper-${ann.pageIndex}`);
+    if (!wrapperEl) return;
+    wrapperEl.appendChild(createNoteEl(ann));
   });
   injectReviewScripts();
   refreshCommentsSidebar();
@@ -2919,9 +3395,9 @@ function refreshCommentsSidebar() {
   sorted.forEach(ann => {
     const entry = document.createElement('div');
     entry.className = 'comment-entry';
-    const icon    = ann.type === 'image' ? '\uD83D\uDDBC\uFE0F' : '\uD83C\uDF53';
+    const icon    = ann.type === 'image' ? '\uD83D\uDDBC\uFE0F ' : '';
     const preview = ann.text.trim() || (ann.highlightText ? `"${ann.highlightText.slice(0,30)}\u2026"` : '(empty)');
-    entry.innerHTML = `<span class="ce-page">Page ${ann.pageIndex + 1}</span><span class="ce-text">${icon} ${preview}</span>`;
+    entry.innerHTML = `<span class="ce-page">Page ${ann.pageIndex + 1}</span><span class="ce-text">${icon}${preview}</span>`;
     entry.addEventListener('click', () => {
       scrollToPage(ann.pageIndex);
       const noteEl = document.getElementById(`ann-${ann.id}`);
@@ -2980,14 +3456,20 @@ window.exportToPdf = async function(pageIndices) {
         p.removeChild(m); try { p.normalize(); } catch(e) {}
       });
       iDoc.querySelectorAll('img.wt-img-commented').forEach(img => {
-        img.classList.remove('wt-img-commented'); img.removeAttribute('data-ann-id');
+        img.classList.remove('wt-img-commented', 'wt-img-changed'); img.removeAttribute('data-ann-id');
+      });
+      iDoc.querySelectorAll('.wt-para-changed').forEach(el => {
+        el.classList.remove('wt-para-changed'); el.removeAttribute('data-ann-id-grey');
       });
     } catch(e) {}
   });
 
   await _origExportToPdf(pageIndices);
 
-  // Restore markings in the studio view after export
+  // Restore markings in the studio view after export. restoreAllIframeMarkings
+  // is itself patched (see the content-anchoring module below) to re-run the
+  // yellow/green/grey reconciliation afterward, so the restored marks reflect
+  // current content rather than stale saved positions.
   setTimeout(() => restoreAllIframeMarkings(), 600);
 };
 
@@ -3042,6 +3524,577 @@ window.loadAndRender = async function() {
   await _origLoadAndRender();
   updateSaveReviewedBtn();
 };
+
+// ═══════════════════════════════════════════════════════════
+//  CONTENT ANCHORING & REVIEW STATES (yellow / green / grey)
+//
+//  Problem this solves: the original annotation system remembers a
+//  highlight's location as a DOM node-path ("3rd paragraph, 2nd child").
+//  Prettier reformatting the HTML, or the LXD inserting/removing a page,
+//  changes that address even though the actual content didn't move.
+//  This module instead remembers WHAT the comment was attached to (the
+//  quoted text, or the image's byte content) and re-locates it fresh,
+//  anywhere in the document, every time the file is (re)loaded:
+//
+//    - exact quote still found, unchanged            -> yellow
+//    - quote gone but the sentence around it is still
+//      there (content was edited in place)           -> green (permanent
+//                                                        once triggered,
+//                                                        even if reverted)
+//    - nothing at all can be found                    -> grey
+//
+//  This is purely additive: it does not remove the existing
+//  highlightData/nodePath capture (kept for back-compat / debugging), it
+//  only takes over deciding WHERE to paint the mark and what color it
+//  gets. It never touches the actual worktext HTML, PDF Simulation, PDF
+//  export, overflow detection, or renderer logic.
+// ═══════════════════════════════════════════════════════════
+
+// ── tiny content hash (FNV-1a, 32-bit) — no crypto.subtle dependency,
+//    since that API is unavailable on file:// pages in most browsers. ──
+function wtHashBytes(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let h = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i++) {
+    h ^= bytes[i];
+    h = (h * 0x01000193) >>> 0;
+  }
+  return h.toString(16);
+}
+
+function wtNorm(s) { return (s || '').replace(/\s+/g, ' ').trim(); }
+
+function wtEscapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// Build a regex from a quote that tolerates whitespace/line-break
+// differences (exactly what Prettier changes) while still requiring the
+// words themselves to match exactly — see the "exact match only" design
+// decision: no fuzzy/similarity matching, only whitespace is elastic.
+function wtFlexRegexForQuote(quote) {
+  const norm = wtNorm(quote);
+  if (!norm) return null;
+  const parts = norm.split(' ').map(wtEscapeRegex);
+  try { return new RegExp(parts.join('\\s+'), 'g'); } catch (e) { return null; }
+}
+
+// ── Map a document's rendered text to DOM positions, so a text match can
+//    be turned back into a real Range (needed to paint a <mark>). ──
+function wtBuildPosMap(doc) {
+  const segs = [];
+  let raw = '';
+  const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(n) {
+      const p = n.parentElement;
+      if (!p) return NodeFilter.FILTER_REJECT;
+      const tag = p.tagName;
+      if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  let node;
+  while ((node = walker.nextNode())) {
+    segs.push({ node, start: raw.length });
+    raw += node.nodeValue;
+  }
+  return { raw, segs };
+}
+
+function wtPosToDom(map, pos) {
+  if (!map.segs.length) return null;
+  // When a position lands exactly on the boundary between two segments,
+  // prefer resolving it to the START of the following segment (offset 0)
+  // rather than the end of the previous one — keeps boundary positions
+  // unambiguous, which matters for wtClampRangeToBlock below.
+  for (let i = 0; i < map.segs.length; i++) {
+    const s = map.segs[i];
+    const nextStart = (i + 1 < map.segs.length) ? map.segs[i + 1].start : map.raw.length;
+    const isLast = (i === map.segs.length - 1);
+    if (pos >= s.start && (pos < nextStart || (isLast && pos <= nextStart))) {
+      return { node: s.node, offset: Math.min(pos - s.start, s.node.nodeValue.length) };
+    }
+  }
+  const last = map.segs[map.segs.length - 1];
+  return { node: last.node, offset: last.node.nodeValue.length };
+}
+
+function wtRangeFromPositions(doc, map, start, end) {
+  const s = wtPosToDom(map, start);
+  const e = wtPosToDom(map, end);
+  if (!s || !e) return null;
+  try {
+    const r = doc.createRange();
+    r.setStart(s.node, s.offset);
+    r.setEnd(e.node, e.offset);
+    return r;
+  } catch (e) { return null; }
+}
+
+function wtWrapRangeInMark(doc, range, annId, stateClass) {
+  try {
+    const frag = range.extractContents();
+    const mark = doc.createElement('mark');
+    mark.className = 'wt-hl ' + stateClass;
+    mark.setAttribute('data-ann-id', String(annId));
+    mark.appendChild(frag);
+    range.insertNode(mark);
+    return true;
+  } catch (e) { return false; }
+}
+
+// ── Capture an anchor at the moment a text comment is created ──
+// Uses the temp <mark> the iframe's own selection handler already inserted
+// (data-ann-id === tmpId) to read the exact quote plus a bit of context
+// immediately before/after it (needed to tell apart duplicate sentences),
+// and which occurrence of that quote on the page this one is.
+function wtCaptureTextAnchor(iDoc, tmpId) {
+  if (!iDoc) return null;
+  const markEl = iDoc.querySelector('mark.wt-hl[data-ann-id="' + tmpId + '"]');
+  if (!markEl) return null;
+  const quote = wtNorm(markEl.innerText || markEl.textContent || '');
+  if (!quote) return null;
+
+  // Use the same script/style-excluding text model as reconciliation (a
+  // plain Range.toString() would also pick up text sitting inside
+  // dynamically-injected <script>/<style> elements elsewhere in the body,
+  // contaminating the context).
+  const map = wtBuildPosMap(iDoc);
+  let start = null, end = null;
+  for (const seg of map.segs) {
+    if (markEl.contains(seg.node)) {
+      if (start === null) start = seg.start;
+      end = seg.start + seg.node.nodeValue.length;
+    }
+  }
+  const beforeText = (start === null) ? '' : wtNorm(map.raw.slice(0, start));
+  const afterText  = (end === null)   ? '' : wtNorm(map.raw.slice(end));
+
+  // occurrence = how many times the quote already appears before this spot
+  let occurrence = 0;
+  if (quote.length) {
+    let idx = beforeText.indexOf(quote);
+    while (idx !== -1) { occurrence++; idx = beforeText.indexOf(quote, idx + 1); }
+  }
+
+  return {
+    quote,
+    prefix: beforeText.slice(-40),
+    suffix: afterText.slice(0, 40),
+    occurrence
+  };
+}
+
+// ── Capture an anchor for an image comment: a byte-content fingerprint,
+//    so a same-filename image swap is detected even though the filename
+//    and position look unchanged. ──
+function wtImgBasename(src) { return (src || '').split('/').pop().split('?')[0]; }
+
+async function wtHashImgEl(img) {
+  if (!img || !img.src) return null;
+  try {
+    if (img.src.indexOf('data:') === 0) {
+      const b64 = img.src.split(',')[1] || '';
+      const bin = atob(b64);
+      const buf = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+      return wtHashBytes(buf.buffer);
+    }
+    const resp = await fetch(img.src);
+    const buf = await resp.arrayBuffer();
+    return wtHashBytes(buf);
+  } catch (e) { return null; }
+}
+
+async function wtCaptureImageAnchor(iDoc, ann) {
+  if (!iDoc) return;
+  try {
+    const all = Array.from(iDoc.querySelectorAll('img'));
+    const same = all.filter(i => wtImgBasename(i.src) === ann.imgSrc);
+    const img = same[ann.imgIndex] !== undefined ? same[ann.imgIndex] : same[0];
+    if (!img) return;
+    const hash = await wtHashImgEl(img);
+    if (hash) ann.imgAnchor = { hash };
+  } catch (e) {}
+}
+
+// ── Locate a text annotation's content, searching its last-known page
+//    first and then every other rendered page (so an inserted/removed page
+//    doesn't strand the comment — the page number is always recomputed,
+//    never trusted from storage). ──
+function wtLocateTextAnnotation(ann) {
+  const iframes = Array.from(document.querySelectorAll('.page-iframe'));
+  if (!iframes.length) return null;
+  const anchor = ann.anchor || {};
+  const quote = wtNorm(anchor.quote || ann.highlightText || '');
+  if (!quote) return { status: 'grey' };
+
+  const order = [];
+  if (ann.pageIndex != null && ann.pageIndex >= 0 && ann.pageIndex < iframes.length) order.push(ann.pageIndex);
+  iframes.forEach((_, i) => { if (i !== ann.pageIndex) order.push(i); });
+
+  const rx = wtFlexRegexForQuote(quote);
+  if (rx) {
+    for (const pi of order) {
+      let iDoc; try { iDoc = iframes[pi].contentDocument; } catch (e) { continue; }
+      if (!iDoc || !iDoc.body) continue;
+      const map = wtBuildPosMap(iDoc);
+      rx.lastIndex = 0;
+      const matches = [];
+      let m;
+      while ((m = rx.exec(map.raw))) { matches.push(m); if (rx.lastIndex === m.index) rx.lastIndex++; }
+      if (matches.length) {
+        let best = matches[0], bestScore = -1;
+        matches.forEach((mm, occ) => {
+          let score = 0;
+          if (anchor.occurrence !== undefined && occ === anchor.occurrence) score += 2;
+          const before = map.raw.slice(Math.max(0, mm.index - 40), mm.index);
+          const after  = map.raw.slice(mm.index + mm[0].length, mm.index + mm[0].length + 40);
+          if (anchor.prefix && before.indexOf(anchor.prefix.slice(-15)) !== -1) score += 1;
+          if (anchor.suffix && after.indexOf(anchor.suffix.slice(0, 15)) !== -1) score += 1;
+          if (score > bestScore) { bestScore = score; best = mm; }
+        });
+        return { status: 'found-exact', pageIndex: pi, iDoc, map, start: best.index, end: best.index + best[0].length };
+      }
+    }
+  }
+
+  // Quote itself not found anywhere. Try to find the surrounding context
+  // (prefix immediately followed, within a short span, by suffix) — if
+  // that's intact, the content was edited in place rather than deleted.
+  const prefixTail = (anchor.prefix || '').slice(-20);
+  const suffixHead = (anchor.suffix || '').slice(0, 20);
+  if (prefixTail && suffixHead) {
+    for (const pi of order) {
+      let iDoc; try { iDoc = iframes[pi].contentDocument; } catch (e) { continue; }
+      if (!iDoc || !iDoc.body) continue;
+      const map = wtBuildPosMap(iDoc);
+      const pIdx = map.raw.indexOf(prefixTail);
+      if (pIdx === -1) continue;
+      const searchFrom = pIdx + prefixTail.length;
+      const sIdx = map.raw.indexOf(suffixHead, searchFrom);
+      if (sIdx !== -1 && sIdx - searchFrom < 400) {
+        // If there's literally nothing left between the prefix and the
+        // suffix, the content wasn't edited to something else — it was
+        // removed entirely. That's the "not found" case (grey), not
+        // "changed" (green): there's no new wording to go review.
+        const gap = map.raw.slice(searchFrom, sIdx).trim();
+        if (!gap) {
+          return { status: 'grey-located', pageIndex: pi, iDoc, map, start: pIdx, end: sIdx + suffixHead.length };
+        }
+        return { status: 'found-changed', pageIndex: pi, iDoc, map, start: searchFrom, end: sIdx };
+      }
+    }
+  }
+
+  // Weakest signal: only half the context survives anywhere. We can still
+  // point near the right spot (grey block highlight) even though we can't
+  // tell exactly what's there now.
+  if (prefixTail || suffixHead) {
+    for (const pi of order) {
+      let iDoc; try { iDoc = iframes[pi].contentDocument; } catch (e) { continue; }
+      if (!iDoc || !iDoc.body) continue;
+      const map = wtBuildPosMap(iDoc);
+      let hitIdx = prefixTail ? map.raw.indexOf(prefixTail) : -1;
+      if (hitIdx === -1 && suffixHead) hitIdx = map.raw.indexOf(suffixHead);
+      if (hitIdx !== -1) {
+        return { status: 'grey-located', pageIndex: pi, iDoc, map, start: hitIdx, end: hitIdx + Math.max(prefixTail.length, 1) };
+      }
+    }
+  }
+
+  return { status: 'grey' };
+}
+
+function wtPaintGreyBlock(result, annId) {
+  const pos = wtPosToDom(result.map, result.start);
+  if (!pos) return;
+  let el = pos.node.nodeType === 3 ? pos.node.parentElement : pos.node;
+  const blockTags = ['P','LI','TD','TH','DIV','H1','H2','H3','H4','H5','H6','SECTION','ARTICLE','BLOCKQUOTE'];
+  let hops = 0;
+  while (el && el !== result.iDoc.body && blockTags.indexOf(el.tagName) === -1 && hops < 8) { el = el.parentElement; hops++; }
+  if (el && el !== result.iDoc.body) {
+    el.classList.add('wt-para-changed');
+    el.setAttribute('data-ann-id-grey', String(annId));
+  }
+}
+
+// Range.extractContents() (used to wrap a match in a <mark>) has a real
+// quirk: when the range's two ends sit in different block elements (e.g.
+// the match runs from the tail of one <p> into the next), it clones empty
+// copies of the in-between block boundaries into the extracted fragment —
+// which then renders as invisible/broken markup. Clamp the paint range to
+// a single block ancestor so the mark never has to cross an element
+// boundary. The vast majority of matches are within one paragraph anyway.
+function wtBlockAncestor(node) {
+  const blockTags = ['P','LI','TD','TH','DIV','H1','H2','H3','H4','H5','H6','SECTION','ARTICLE','BLOCKQUOTE','BODY'];
+  let el = node.nodeType === 3 ? node.parentElement : node;
+  while (el && blockTags.indexOf(el.tagName) === -1) el = el.parentElement;
+  return el;
+}
+
+function wtClampRangeToBlock(map, start, end) {
+  const sPos = wtPosToDom(map, start);
+  if (!sPos) return null;
+  const block = wtBlockAncestor(sPos.node);
+  if (!block) return null;
+  // Track the actual last node reached, not just a numeric offset — a
+  // boundary position resolved purely by number can land at the START of
+  // the *next* block's text node (offset 0), which still counts as
+  // "inside" that block structurally and would trip extractContents()'s
+  // cross-element quirk again. Ending the range at this exact node instead
+  // guarantees it never leaves the block we started in.
+  let endNode = sPos.node;
+  for (const seg of map.segs) {
+    if (!seg.node.nodeValue.length) continue; // ignore zero-length text-node artifacts
+    if (seg.start < start) continue;
+    if (seg.start >= end) break;
+    if (wtBlockAncestor(seg.node) !== block) break;
+    endNode = seg.node;
+  }
+  return { startNode: sPos.node, startOffset: sPos.offset, endNode, endOffset: endNode.nodeValue.length };
+}
+
+function wtRangeFromClamped(doc, clamped) {
+  if (!clamped) return null;
+  try {
+    const r = doc.createRange();
+    r.setStart(clamped.startNode, clamped.startOffset);
+    r.setEnd(clamped.endNode, clamped.endOffset);
+    return r;
+  } catch (e) { return null; }
+}
+
+function wtReconcileTextAnnotation(ann) {
+  const result = wtLocateTextAnnotation(ann);
+  if (!result) { return; }
+
+  if (result.pageIndex != null) ann.pageIndex = result.pageIndex; // always live-recomputed
+
+  if (result.status === 'found-exact' || result.status === 'found-changed') {
+    const clamped = wtClampRangeToBlock(result.map, result.start, result.end);
+    const range = wtRangeFromClamped(result.iDoc, clamped);
+    if (range) wtWrapRangeInMark(result.iDoc, range, ann.id, 'wt-hl-yellow');
+  }
+  // 'grey-located' / not-found: content couldn't be found — leave unpainted
+  // (no grey block highlight), but pageIndex above still tracks wherever the
+  // surrounding context was located, preserving position-following.
+}
+
+async function wtReconcileImageAnnotation(ann) {
+  const iframes = Array.from(document.querySelectorAll('.page-iframe'));
+  if (!iframes.length) return;
+  const order = [];
+  if (ann.pageIndex != null && ann.pageIndex >= 0 && ann.pageIndex < iframes.length) order.push(ann.pageIndex);
+  iframes.forEach((_, i) => { if (i !== ann.pageIndex) order.push(i); });
+
+  const wantHash = ann.imgAnchor && ann.imgAnchor.hash;
+  let anyBasenameFound = false;
+  let exactMatch = null;   // { pageIndex, img, idx }
+  let sameNameFirst = null; // fallback if no hash to compare against
+
+  for (const pi of order) {
+    let iDoc; try { iDoc = iframes[pi].contentDocument; } catch (e) { continue; }
+    if (!iDoc || !iDoc.body) continue;
+    const all = Array.from(iDoc.querySelectorAll('img'));
+    const same = all.filter(i => wtImgBasename(i.src) === ann.imgSrc);
+    if (!same.length) continue;
+    anyBasenameFound = true;
+    if (!sameNameFirst) sameNameFirst = { pageIndex: pi, img: same[Math.min(ann.imgIndex, same.length - 1)], idx: Math.min(ann.imgIndex, same.length - 1) };
+    if (wantHash) {
+      for (let idx = 0; idx < same.length; idx++) {
+        const h = await wtHashImgEl(same[idx]);
+        if (h && h === wantHash) { exactMatch = { pageIndex: pi, img: same[idx], idx }; break; }
+      }
+    }
+    if (exactMatch) break;
+  }
+
+  if (exactMatch) {
+    ann.pageIndex = exactMatch.pageIndex;
+    ann.imgIndex  = exactMatch.idx;
+    exactMatch.img.classList.add('wt-img-commented');
+    exactMatch.img.setAttribute('data-ann-id', String(ann.id));
+  } else if (anyBasenameFound && sameNameFirst) {
+    // Same filename exists but its content fingerprint doesn't match (or we
+    // have no fingerprint to compare, e.g. legacy data) — still locate and
+    // mark it there, keeping position-following even though the image
+    // content itself may have changed.
+    ann.pageIndex = sameNameFirst.pageIndex;
+    ann.imgIndex  = sameNameFirst.idx;
+    sameNameFirst.img.classList.add('wt-img-commented');
+    sameNameFirst.img.setAttribute('data-ann-id', String(ann.id));
+  }
+  // else: image not found at all — leave unpainted.
+}
+
+function wtClearPaintedMarks(iDoc) {
+  if (!iDoc) return;
+  iDoc.querySelectorAll('mark.wt-hl').forEach(m => {
+    const p = m.parentNode;
+    while (m.firstChild) p.insertBefore(m.firstChild, m);
+    p.removeChild(m);
+    try { p.normalize(); } catch (e) {}
+  });
+  iDoc.querySelectorAll('img.wt-img-commented').forEach(img => {
+    img.classList.remove('wt-img-commented', 'wt-img-changed');
+    img.removeAttribute('data-ann-id');
+  });
+  iDoc.querySelectorAll('.wt-para-changed').forEach(el => {
+    el.classList.remove('wt-para-changed');
+    el.removeAttribute('data-ann-id-grey');
+  });
+}
+
+let _wtReconcileInFlight = false;
+let _wtReconcileQueued = false;
+
+async function wtReconcileAll() {
+  if (_wtReconcileInFlight) { _wtReconcileQueued = true; return; }
+  _wtReconcileInFlight = true;
+  try {
+    const iframes = Array.from(document.querySelectorAll('.page-iframe'));
+    const notReady = iframes.filter(f => { try { return f.contentDocument.readyState !== 'complete'; } catch (e) { return true; } });
+    if (notReady.length && iframes.length) {
+      _wtReconcileInFlight = false;
+      setTimeout(wtReconcileAll, 250);
+      return;
+    }
+
+    iframes.forEach(f => { try { wtClearPaintedMarks(f.contentDocument); } catch (e) {} });
+
+    for (const ann of annotations) {
+      if (ann.type === 'text') {
+        try { wtReconcileTextAnnotation(ann); } catch (e) {}
+      } else if (ann.type === 'image') {
+        try { await wtReconcileImageAnnotation(ann); } catch (e) {}
+      }
+    }
+
+    refreshCommentsSidebar();
+    if (typeof wtRepositionNotes === 'function') { try { wtRepositionNotes(); } catch (e) {} }
+  } finally {
+    _wtReconcileInFlight = false;
+    if (_wtReconcileQueued) { _wtReconcileQueued = false; setTimeout(wtReconcileAll, 50); }
+  }
+}
+
+// Re-locate everything whenever comments are restored from an opened file,
+// or whenever the canvas is rebuilt (fresh open, auto-detected save,
+// manual refresh, images-folder pick).
+const _origRestoreAnnotations = restoreAnnotations;
+window.restoreAnnotations = function(data) {
+  _origRestoreAnnotations(data);
+  setTimeout(() => wtReconcileAll(), 200);
+};
+
+const _origReattachAnnotations = reattachAnnotations;
+window.reattachAnnotations = function() {
+  _origReattachAnnotations();
+  setTimeout(() => wtReconcileAll(), 200);
+};
+
+const _origRestoreAllIframeMarkings = restoreAllIframeMarkings;
+window.restoreAllIframeMarkings = function() {
+  _origRestoreAllIframeMarkings();
+  setTimeout(() => wtReconcileAll(), 50);
+};
+
+// ═══════════════════════════════════════════════════════════
+//  LIGHT / DARK MODE
+//  Toggles a data-theme attribute on <html>, which only affects
+//  the CSS variables/rules added in the "Light / Dark Mode" block
+//  in <style> above. Nothing here ever touches iframe content,
+//  PDF Simulation, PDF export, or review-highlight colors — those
+//  live entirely inside the iframes, which this never reaches.
+// ═══════════════════════════════════════════════════════════
+(function ThemeToggle() {
+  const btn = document.getElementById('theme-toggle-btn');
+  if (!btn) return;
+
+  function applyTheme(mode) {
+    const isDark = mode === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    btn.setAttribute('aria-checked', isDark ? 'true' : 'false');
+    try { localStorage.setItem('wt-theme', mode); } catch (e) {}
+  }
+
+  let saved = 'light';
+  try { saved = localStorage.getItem('wt-theme') || 'light'; } catch (e) {}
+  applyTheme(saved);
+
+  btn.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyTheme(isDark ? 'light' : 'dark');
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════
+//  REVIEW / REVISE & CHECK MODE SYSTEM
+//  Purely additive: toggles a class on .app that (a) hides the
+//  existing sidebar and (b) shows the new Google Doc reference
+//  panel beside the existing #canvas-area. #canvas-area itself,
+//  its rendering, the comment/highlight system, PDF Simulation and
+//  Overflow Checking are never touched — they run identically in
+//  both modes, since they only ever act on #canvas-area's content.
+//  Default mode on load is "revise" (Revise & Check), which is
+//  visually and functionally identical to the app before this
+//  feature existed.
+// ═══════════════════════════════════════════════════════════
+let currentStudioMode = 'revise';
+
+function setStudioMode(mode) {
+  if (mode !== 'review' && mode !== 'revise') return;
+  currentStudioMode = mode;
+  const appEl = document.querySelector('.app');
+  if (appEl) appEl.classList.toggle('mode-review', mode === 'review');
+  const reviewBtn = document.getElementById('mode-btn-review');
+  const reviseBtn = document.getElementById('mode-btn-revise');
+  if (reviewBtn) reviewBtn.classList.toggle('active', mode === 'review');
+  if (reviseBtn) reviseBtn.classList.toggle('active', mode === 'revise');
+}
+
+(function ModeSwitch() {
+  const reviewBtn = document.getElementById('mode-btn-review');
+  const reviseBtn = document.getElementById('mode-btn-revise');
+  if (!reviewBtn || !reviseBtn) return;
+  reviewBtn.addEventListener('click', () => setStudioMode('review'));
+  reviseBtn.addEventListener('click', () => setStudioMode('revise'));
+})();
+
+// ── Google Doc reference panel (Review Mode only) ──
+function wtExtractGoogleDocEmbedUrl(rawLink) {
+  const link = (rawLink || '').trim();
+  if (!link) return null;
+  // Standard share/edit link: .../document/d/<ID>/edit?... -> embeddable preview
+  const m = link.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return `https://docs.google.com/document/d/${m[1]}/preview`;
+  // Already a preview/pub link or other docs.google.com URL — use as-is (best effort)
+  if (/^https:\/\/docs\.google\.com\//i.test(link)) return link;
+  return null;
+}
+
+(function GoogleDocPanel() {
+  const input  = document.getElementById('gdoc-link-input');
+  const loadBtn = document.getElementById('gdoc-load-btn');
+  const iframe = document.getElementById('gdoc-iframe');
+  const empty  = document.getElementById('gdoc-empty');
+  if (!input || !loadBtn || !iframe || !empty) return;
+
+  function loadDoc() {
+    const embedUrl = wtExtractGoogleDocEmbedUrl(input.value);
+    if (!embedUrl) {
+      alert('Please paste a valid Google Docs link (e.g. the "Share" link from Google Docs).');
+      return;
+    }
+    iframe.src = embedUrl;
+    iframe.style.display = 'block';
+    empty.style.display = 'none';
+  }
+
+  loadBtn.addEventListener('click', loadDoc);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); loadDoc(); }
+  });
+})();
 
 // ═══════════════════════════════════════════════════════════
 //  CHLOE — WORKTEXT STUDIO COMPANION
