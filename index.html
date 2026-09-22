@@ -1187,17 +1187,18 @@
       <div class="toolbar-divider"></div>
       <div style="position:relative;">
                 <button class="btn btn-export" id="btn-export" disabled>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
           Export PDF ▾
         </button>
         <div class="export-menu" id="export-menu">
           <div class="export-menu-label">Export options</div>
           <button class="export-menu-item" id="export-all">
-            All Pages
+            📄 All Pages
             <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-all-count"></span>
           </button>
           <div class="export-menu-divider"></div>
           <button class="export-menu-item" id="export-current">
-            Current Page Only
+            🔖 Current Page Only
             <span style="margin-left:auto;font-size:11px;color:var(--muted);" id="export-current-num"></span>
           </button>
         </div>
@@ -3351,6 +3352,11 @@ function restoreAnnotations(data) {
     if (ann.everChanged === undefined) ann.everChanged = false;
     if (ann.type === 'text'  && ann.anchor    === undefined) ann.anchor    = null;
     if (ann.type === 'image' && ann.imgAnchor === undefined) ann.imgAnchor = null;
+    // back-compat: comments saved before the sticky-anchor upgrade (or
+    // never yet run through "Save Reviewed HTML" since that upgrade) have
+    // no embedded <span data-wt-anchor-id> marker in the file — treat them
+    // as not-stickered so they keep using the existing quote-based search.
+    if (ann.stickerActive === undefined) ann.stickerActive = false;
     annotations.push(ann);
     const wrapperEl = document.getElementById(`wrapper-${ann.pageIndex}`);
     if (!wrapperEl) return;
@@ -3478,9 +3484,17 @@ window.exportToPdf = async function(pageIndices) {
 document.getElementById('btn-save-reviewed').addEventListener('click', () => {
   if (!lastHtmlContent) { alert('No file loaded.'); return; }
   if (!annotations.length) { showNoCommentsModal(); return; }
+  let cleanHtml = lastHtmlContent.replace(/\n?<!-- WORKTEXT STUDIO COMMENTS -->[\s\S]*?<\/script>\n?/g, '');
+  // Bake an invisible content anchor into the file itself for every comment
+  // that's currently found, so it stays attached to that exact spot (edits,
+  // page moves) instead of being re-found by matching words next time this
+  // file is opened. See wtEmbedStickyAnchors. Non-destructive / fail-safe:
+  // on any error, or for a comment it can't confidently place, it leaves
+  // that part of the HTML untouched and the existing quote-search still
+  // covers it.
+  cleanHtml = wtEmbedStickyAnchors(cleanHtml);
   const annotData    = JSON.stringify(annotations, null, 2);
   const commentBlock = `\n<!-- WORKTEXT STUDIO COMMENTS -->\n<script id="wt-comments" type="application/json">\n${annotData}\n<\/script>\n`;
-  let cleanHtml = lastHtmlContent.replace(/\n?<!-- WORKTEXT STUDIO COMMENTS -->[\s\S]*?<\/script>\n?/g, '');
   let reviewed  = cleanHtml.includes('</body>') ? cleanHtml.replace('</body>', commentBlock + '</body>') : cleanHtml + commentBlock;
   const baseName = currentHtmlName ? currentHtmlName.replace(/\.html?$/i, '_reviewed.html') : 'worktext_reviewed.html';
   const blob = new Blob([reviewed], { type: 'text/html' });
@@ -3715,6 +3729,229 @@ async function wtCaptureImageAnchor(iDoc, ann) {
   } catch (e) {}
 }
 
+// ═══════════════════════════════════════════════════════════
+//  STICKY CONTENT ANCHORS
+//
+//  Problem the content-anchoring module above (quote + occurrence +
+//  prefix/suffix) can't solve: if the document contains two identical
+//  pieces of text (e.g. "Paglinang" on Page 1 and Page 3), and the LXD
+//  edits the Page 3 occurrence, the quote there no longer matches — so a
+//  fresh word-search can end up re-attaching the comment to the untouched
+//  Page 1 occurrence instead. Quote-matching alone can never fully solve
+//  this: once the words change there is nothing left to search for.
+//
+//  This module solves it differently: at "Save Reviewed HTML" time, for
+//  every comment that's currently showing a highlight, it wraps that exact
+//  spot in the real, saved HTML with an invisible marker —
+//  <span data-wt-anchor-id="<comment id>">...</span> — carrying no styling
+//  of its own, so it's inert if the file is ever opened outside Worktext
+//  Studio. From then on, reconciliation for that comment looks ONLY for
+//  its own marker (never for matching words), so:
+//    - editing the words inside the marker doesn't lose the comment
+//    - the marker travels naturally with its paragraph if pages shift
+//    - if the marker itself is deleted, the comment is left exactly where
+//      it last was, and reconciliation does not search for a replacement
+//  This is purely additive: annotations that haven't been through a save
+//  cycle yet (ann.stickerActive is falsy) fall straight through to the
+//  existing quote/prefix/suffix search below, completely unchanged.
+// ═══════════════════════════════════════════════════════════
+
+// Find every top-level `.page` div's exact raw-text span [openEnd, closeEnd)
+// in the *original* HTML string (byte-for-byte, no DOM round-trip), so a
+// sticky-anchor span can be spliced in without touching anything else in
+// the file. Matches the same `.page` convention documented for opening a
+// worktext (see the "No .page elements found" message in loadAndRender).
+function wtFindPageRawSpans(html) {
+  const spans = [];
+  const openRe = /<div\b[^>]*\bclass\s*=\s*(["'])page\1[^>]*>/gi;
+  const tagRe  = /<div\b[^>]*>|<\/div\s*>/gi;
+  let m;
+  while ((m = openRe.exec(html))) {
+    const openStart = m.index;
+    const openEnd   = openRe.lastIndex;
+    tagRe.lastIndex = openEnd;
+    let depth = 1, closeEnd = -1, t;
+    while ((t = tagRe.exec(html))) {
+      if (t[0].charAt(1) === '/') { depth--; if (depth === 0) { closeEnd = tagRe.lastIndex; break; } }
+      else depth++;
+    }
+    if (closeEnd === -1) break; // malformed / unbalanced markup — bail out safely
+    spans.push({ openStart, openEnd, closeEnd });
+    openRe.lastIndex = closeEnd;
+  }
+  return spans;
+}
+
+// Bake sticky anchors for every text comment that is currently displayed
+// with a highlight, into `html` (already has the old comments block
+// stripped). Returns the updated HTML string; never throws, and leaves
+// anything it can't confidently place completely untouched.
+// Locate an anchor {quote, prefix, suffix, occurrence} inside a single
+// document, using the exact same matching rules as the live runtime
+// reconciliation (wtLocateTextAnnotation) — just scoped to one doc instead
+// of searching across pages, since the caller already knows which page.
+// Returns { start, end, map } or null. Operates on decoded DOM text (via
+// wtBuildPosMap), not raw HTML source, so it isn't thrown off by entities
+// (&nbsp;, &amp;, ...) or by inline tags sitting between words — unlike a
+// plain regex match against raw markup would be.
+function wtLocateAnchorInDoc(doc, anchor) {
+  const map = wtBuildPosMap(doc);
+  const quote = wtNorm(anchor.quote || '');
+  if (quote) {
+    const rx = wtFlexRegexForQuote(quote);
+    if (rx) {
+      const matches = [];
+      let m;
+      while ((m = rx.exec(map.raw))) { matches.push(m); if (rx.lastIndex === m.index) rx.lastIndex++; }
+      if (matches.length) {
+        let best = matches[0], bestScore = -1;
+        matches.forEach((mm, occ) => {
+          let score = 0;
+          if (anchor.occurrence !== undefined && occ === anchor.occurrence) score += 2;
+          const before = map.raw.slice(Math.max(0, mm.index - 40), mm.index);
+          const after  = map.raw.slice(mm.index + mm[0].length, mm.index + mm[0].length + 40);
+          if (anchor.prefix && before.indexOf(anchor.prefix.slice(-15)) !== -1) score += 1;
+          if (anchor.suffix && after.indexOf(anchor.suffix.slice(0, 15)) !== -1) score += 1;
+          if (score > bestScore) { bestScore = score; best = mm; }
+        });
+        return { start: best.index, end: best.index + best[0].length, map };
+      }
+    }
+  }
+  // Quote not found verbatim (content edited in place) — bracket by the
+  // surviving surrounding context instead, same signal the runtime
+  // "found-changed" state already uses.
+  const prefixTail = (anchor.prefix || '').slice(-20);
+  const suffixHead = (anchor.suffix || '').slice(0, 20);
+  if (prefixTail && suffixHead) {
+    const pIdx = map.raw.indexOf(prefixTail);
+    if (pIdx !== -1) {
+      const searchFrom = pIdx + prefixTail.length;
+      const sIdx = map.raw.indexOf(suffixHead, searchFrom);
+      if (sIdx !== -1 && sIdx - searchFrom < 400 && map.raw.slice(searchFrom, sIdx).trim()) {
+        return { start: searchFrom, end: sIdx, map };
+      }
+    }
+  }
+  return null;
+}
+
+// Same idea as wtWrapRangeInMark, but produces the inert
+// <span data-wt-anchor-id> sticky marker instead of a visible <mark>.
+function wtWrapRangeInAnchorSpan(doc, range, annId) {
+  try {
+    const frag = range.extractContents();
+    const span = doc.createElement('span');
+    span.setAttribute('data-wt-anchor-id', String(annId));
+    span.appendChild(frag);
+    range.insertNode(span);
+    return true;
+  } catch (e) { return false; }
+}
+
+// A precise start/end -> Range resolver for the embedding step, used
+// instead of the existing wtClampRangeToBlock: that function always
+// extends its end position to the *full length of the last text node it
+// touches* rather than the exact match end (harmless for its own call
+// site today, but it would make a sticky anchor wrap extra trailing text
+// whenever a match sits alone in a single text node — the common case for
+// a plain sentence). This keeps the anchor tight around exactly what was
+// matched, while still avoiding Range.extractContents()'s cross-element
+// quirk (see wtClampRangeToBlock above) on the rare match that crosses a
+// block boundary.
+function wtEmbedClampRangeToBlock(map, start, end) {
+  const sPos = wtPosToDom(map, start);
+  const ePos = wtPosToDom(map, end);
+  if (!sPos || !ePos) return null;
+  const block = wtBlockAncestor(sPos.node);
+  if (!block) return null;
+  if (wtBlockAncestor(ePos.node) === block) {
+    return { startNode: sPos.node, startOffset: sPos.offset, endNode: ePos.node, endOffset: ePos.offset };
+  }
+  let endNode = sPos.node, endOffset = sPos.node.nodeValue.length;
+  for (const seg of map.segs) {
+    if (!seg.node.nodeValue.length) continue;
+    if (seg.start < start) continue;
+    if (seg.start >= end) break;
+    if (wtBlockAncestor(seg.node) !== block) break;
+    endNode = seg.node; endOffset = seg.node.nodeValue.length;
+  }
+  return { startNode: sPos.node, startOffset: sPos.offset, endNode, endOffset };
+}
+
+function wtEmbedStickyAnchors(html) {
+  try {
+    const spans = wtFindPageRawSpans(html);
+    if (!spans.length) return html;
+
+    const byPage = {};
+    annotations.forEach(ann => {
+      if (ann.type !== 'text') return;
+      const iframe = document.getElementById('iframe-' + ann.pageIndex);
+      if (!iframe) return;
+      let iDoc; try { iDoc = iframe.contentDocument; } catch (e) { return; }
+      if (!iDoc) return;
+      let mark; try { mark = iDoc.querySelector('mark.wt-hl[data-ann-id="' + ann.id + '"]'); } catch (e) { mark = null; }
+      if (!mark) return; // not currently shown highlighted — nothing to anchor this round
+      (byPage[ann.pageIndex] = byPage[ann.pageIndex] || []).push(ann);
+    });
+
+    let out = html;
+    let shift = 0;
+
+    spans.forEach((span, pageIndex) => {
+      const pageAnns = byPage[pageIndex];
+      if (!pageAnns || !pageAnns.length) return;
+
+      const rawStart = span.openEnd + shift;
+      const rawEnd   = span.closeEnd + shift;
+      const pageRaw  = out.slice(rawStart, rawEnd);
+
+      // Comments already anchored on this page from an earlier save need no
+      // work — a plain substring check keeps this a true no-op for a page
+      // where nothing new needs anchoring.
+      const toEmbed = pageAnns.filter(ann => pageRaw.indexOf('data-wt-anchor-id="' + ann.id + '"') === -1);
+      if (!toEmbed.length) return;
+
+      // Parse just this one page's inner HTML on its own (not the whole
+      // document — see module header) so the match runs against real,
+      // entity-decoded DOM text, exactly like the live highlight/
+      // reconciliation logic does, instead of raw markup.
+      let tempDoc;
+      try { tempDoc = new DOMParser().parseFromString('<!DOCTYPE html><html><body>' + pageRaw + '</body></html>', 'text/html'); }
+      catch (e) { return; }
+      if (!tempDoc || !tempDoc.body) return;
+
+      let embeddedAny = false;
+      toEmbed.forEach(ann => {
+        const anchor = ann.anchor || {};
+        if (!anchor.quote && !ann.highlightText) return;
+        const useAnchor = anchor.quote ? anchor : Object.assign({}, anchor, { quote: ann.highlightText });
+        const loc = wtLocateAnchorInDoc(tempDoc, useAnchor);
+        if (!loc) return; // couldn't confidently place it this round — old quote search still covers it next load
+        const clamped = wtEmbedClampRangeToBlock(loc.map, loc.start, loc.end);
+        const range = wtRangeFromClamped(tempDoc, clamped);
+        if (!range) return;
+        if (wtWrapRangeInAnchorSpan(tempDoc, range, ann.id)) {
+          ann.stickerActive = true;
+          embeddedAny = true;
+        }
+      });
+
+      if (embeddedAny) {
+        const newPageRaw = tempDoc.body.innerHTML;
+        out = out.slice(0, rawStart) + newPageRaw + out.slice(rawEnd);
+        shift += newPageRaw.length - (rawEnd - rawStart);
+      }
+    });
+
+    return out;
+  } catch (e) {
+    console.warn('wt: sticky anchor embedding skipped due to error', e);
+    return html;
+  }
+}
+
 // ── Locate a text annotation's content, searching its last-known page
 //    first and then every other rendered page (so an inserted/removed page
 //    doesn't strand the comment — the page number is always recomputed,
@@ -3722,6 +3959,29 @@ async function wtCaptureImageAnchor(iDoc, ann) {
 function wtLocateTextAnnotation(ann) {
   const iframes = Array.from(document.querySelectorAll('.page-iframe'));
   if (!iframes.length) return null;
+
+  // Sticky anchor takes over completely once this comment has been through
+  // a save cycle: look only for its own marker, on its last-known page
+  // first, then every other page (so a page move is still followed). If
+  // the marker can't be found anywhere, the content it was wrapped around
+  // was deleted — leave the comment on its last-known page, unpainted,
+  // rather than falling back to a word search (see module header above).
+  if (ann.stickerActive) {
+    const order = [];
+    if (ann.pageIndex != null && ann.pageIndex >= 0 && ann.pageIndex < iframes.length) order.push(ann.pageIndex);
+    iframes.forEach((_, i) => { if (i !== ann.pageIndex) order.push(i); });
+    for (const pi of order) {
+      let iDoc; try { iDoc = iframes[pi].contentDocument; } catch (e) { continue; }
+      if (!iDoc || !iDoc.body) continue;
+      let span; try { span = iDoc.querySelector('span[data-wt-anchor-id="' + ann.id + '"]'); } catch (e) { span = null; }
+      if (!span) continue;
+      let stickyRange = null;
+      try { stickyRange = iDoc.createRange(); stickyRange.selectNodeContents(span); } catch (e) { stickyRange = null; }
+      return { status: 'found-exact', pageIndex: pi, iDoc, stickyRange };
+    }
+    return { status: 'grey' };
+  }
+
   const anchor = ann.anchor || {};
   const quote = wtNorm(anchor.quote || ann.highlightText || '');
   if (!quote) return { status: 'grey' };
@@ -3867,6 +4127,13 @@ function wtReconcileTextAnnotation(ann) {
   if (!result) { return; }
 
   if (result.pageIndex != null) ann.pageIndex = result.pageIndex; // always live-recomputed
+
+  if (result.stickyRange) {
+    // Sticky-anchor match: the marker itself already brackets the exact
+    // (possibly edited) content — paint it directly, no position math needed.
+    wtWrapRangeInMark(result.iDoc, result.stickyRange, ann.id, 'wt-hl-yellow');
+    return;
+  }
 
   if (result.status === 'found-exact' || result.status === 'found-changed') {
     const clamped = wtClampRangeToBlock(result.map, result.start, result.end);
