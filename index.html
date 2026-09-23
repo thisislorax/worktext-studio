@@ -1984,10 +1984,30 @@ async function loadAndRender() {
 
   currentPages = pageDivs.map((pageDiv, pageIndex) => {
     let pageHtml = pageDiv.outerHTML;
+    // Remember each <img>'s ORIGINAL filename, in order, before the src
+    // substitution below replaces it with a throwaway blob: URL. This is
+    // purely so an image comment can record and display which real file
+    // it belongs to (see data-wt-orig-src below) — it does not change how
+    // images are rendered, matched, or tracked; that logic is untouched.
+    const origImgBasenames = [];
+    (pageHtml.match(/<img\b[^>]*>/gi) || []).forEach(tag => {
+      const srcMatch = tag.match(/\ssrc\s*=\s*(["'])([^"']*)\1/i);
+      origImgBasenames.push(srcMatch ? srcMatch[2].split('/').pop().split('?')[0] : null);
+    });
     for (const [relPath, blobUrl] of Object.entries(imageMap)) {
       const escaped = relPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       pageHtml = pageHtml.replace(new RegExp(escaped, 'g'), blobUrl);
     }
+    // Tag each <img> (by position, matching the list captured above) with
+    // its real original filename via a new data-wt-orig-src attribute.
+    // This is read-only display metadata for image comments — nothing
+    // else in the app reads or depends on this attribute.
+    let wtImgTagPos = 0;
+    pageHtml = pageHtml.replace(/<img\b([^>]*)>/gi, function(m, attrs) {
+      const basename = origImgBasenames[wtImgTagPos++];
+      if (!basename || /\sdata-wt-orig-src=/.test(attrs)) return m;
+      return '<img' + attrs + ' data-wt-orig-src="' + basename.replace(/"/g, '&quot;') + '">';
+    });
 
     // Per-page header overrides that mirror the renderer pipeline:
     //   • Page 0  : hide .hdr (cover page has no running header)
@@ -2812,6 +2832,15 @@ img.wt-img-commented.wt-img-changed {
     } catch(err) {}
   }
   function imgBasename(src) { return (src||'').split('/').pop().split('?')[0]; }
+  // Display-only: the image's real original filename, for showing on the
+  // sticky note so the LXD can tell which image a comment refers to. Prefers
+  // the data-wt-orig-src tag (the real filename, set at render time); falls
+  // back to imgBasename(img.src) for safety if the tag is ever missing.
+  // Purely additive — does not affect imgSrc/imgIndex or any existing
+  // matching/tracking logic below.
+  function imgFileNameOf(img) {
+    return img.getAttribute('data-wt-orig-src') || imgBasename(img.src);
+  }
   function imgIndexOf(img) {
     var bn = imgBasename(img.src);
     var all = Array.from(document.querySelectorAll('img'));
@@ -2878,7 +2907,7 @@ img.wt-img-commented.wt-img-changed {
     var noteX = rect.left + scrollX;
     var noteY = rect.bottom + scrollY + 8;
     post({ type:'wt-image-comment', imgSrc:imgBasename(img.src), imgIndex:imgIndexOf(img),
-           noteX:noteX, noteY:noteY });
+           imgFileName:imgFileNameOf(img), noteX:noteX, noteY:noteY });
   });
 
   // Commands from parent
@@ -3055,7 +3084,12 @@ window.addEventListener('message', (e) => {
       // Content-based anchor for images: a fingerprint of the actual image
       // bytes, so a silent file-swap under the same filename is detected
       // as "changed" even though the filename/position looks identical.
-      imgAnchor: null, reviewState: 'yellow', everChanged: false
+      imgAnchor: null, reviewState: 'yellow', everChanged: false,
+      // Display-only: the image's real original filename (e.g. "img_001.png"),
+      // shown on the sticky note so the LXD can tell which image a comment
+      // refers to even if the comment doesn't visually follow the image.
+      // Purely informational — not used for matching/tracking.
+      imgFileName: d.imgFileName || null
     };
     annotations.push(ann);
     // Add marker to the img
@@ -3172,8 +3206,11 @@ function createNoteEl(ann) {
     note.appendChild(ctx);
   } else if (ann.type === 'image') {
     const ctx = document.createElement('div');
-    ctx.style.cssText = 'font-size:10px;color:#888;margin-bottom:4px;font-family:Montserrat,sans-serif;';
-    ctx.textContent = '\uD83D\uDDBC\uFE0F Image comment';
+    ctx.className = 'wt-ann-img-label';
+    ctx.style.cssText = 'font-size:10px;color:#888;margin-bottom:4px;font-family:Montserrat,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;';
+    const fileLabel = ann.imgFileName || 'image (name unknown)';
+    ctx.title = fileLabel;
+    ctx.textContent = '\uD83D\uDDBC\uFE0F ' + fileLabel;
     note.appendChild(ctx);
   }
 
@@ -3352,6 +3389,10 @@ function restoreAnnotations(data) {
     if (ann.everChanged === undefined) ann.everChanged = false;
     if (ann.type === 'text'  && ann.anchor    === undefined) ann.anchor    = null;
     if (ann.type === 'image' && ann.imgAnchor === undefined) ann.imgAnchor = null;
+    // back-compat: comments saved before the image-filename display feature
+    // won't have this field yet — default it so a repair pass can try to
+    // safely fill it in later (see wtFillLegacyImageFileName).
+    if (ann.type === 'image' && ann.imgFileName === undefined) ann.imgFileName = null;
     // back-compat: comments saved before the sticky-anchor upgrade (or
     // never yet run through "Save Reviewed HTML" since that upgrade) have
     // no embedded <span data-wt-anchor-id> marker in the file — treat them
@@ -4192,6 +4233,39 @@ async function wtReconcileImageAnnotation(ann) {
   // else: image not found at all — leave unpainted.
 }
 
+// Display-only repair for OLD image comments that were saved before the
+// filename-display feature existed (so ann.imgFileName is still empty).
+// This is completely separate from wtReconcileImageAnnotation above and
+// never touches imgSrc, imgIndex, pageIndex, imgAnchor, or the painted
+// marker — it only ever fills in the one new imgFileName field, purely so
+// it can be shown on the sticky note.
+//
+// If the page this comment is currently sitting on has EXACTLY ONE image,
+// that's almost certainly the one it meant, so we record that image's real
+// filename. If the page has zero or more than one image, we can't safely
+// guess which one it meant, so we deliberately leave the comment's data
+// untouched — same "don't guess" rule used for the tracking fix.
+async function wtFillLegacyImageFileName(ann) {
+  if (ann.imgFileName) return; // already has one — nothing to do
+  const iframe = document.getElementById('iframe-' + ann.pageIndex);
+  if (!iframe) return;
+  let iDoc; try { iDoc = iframe.contentDocument; } catch (e) { return; }
+  if (!iDoc || !iDoc.body) return;
+  const pageImgs = Array.from(iDoc.querySelectorAll('img'));
+  if (pageImgs.length !== 1) return; // ambiguous or no image — don't guess
+  const name = pageImgs[0].getAttribute('data-wt-orig-src');
+  if (!name) return;
+  ann.imgFileName = name;
+  // The sticky note bubble may already be on screen (created before this
+  // repair ran) showing the "name unknown" fallback — refresh just that
+  // one label in place, without touching anything else about the note.
+  const note = document.getElementById('ann-' + ann.id);
+  if (note) {
+    const ctx = note.querySelector('.wt-ann-img-label');
+    if (ctx) { ctx.title = name; ctx.textContent = '🖼️ ' + name; }
+  }
+}
+
 function wtClearPaintedMarks(iDoc) {
   if (!iDoc) return;
   iDoc.querySelectorAll('mark.wt-hl').forEach(m => {
@@ -4232,6 +4306,7 @@ async function wtReconcileAll() {
         try { wtReconcileTextAnnotation(ann); } catch (e) {}
       } else if (ann.type === 'image') {
         try { await wtReconcileImageAnnotation(ann); } catch (e) {}
+        try { await wtFillLegacyImageFileName(ann); } catch (e) {}
       }
     }
 
