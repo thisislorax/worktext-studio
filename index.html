@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+      <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -685,6 +686,8 @@
       word-break: break-word;
       white-space: pre-wrap;
       cursor: text;
+      user-select: text;           /* allow highlighting the comment text */
+      -webkit-user-select: text;
     }
     .note-display a {
       color: #1a5fb4;
@@ -1168,7 +1171,7 @@
       <div class="toolbar-divider"></div>
       <div class="renderer-wrap">
         <label for="renderer-select">Renderer</label>
-        <select id="renderer-select">
+        <select id="renderer-select" autocomplete="off">
           <option value="ak">K-G3</option>
           <option value="g46">G4-G6</option>
           <option value="bible">Bible Subject</option>
@@ -1214,6 +1217,15 @@
     <span class="status-pill" id="status-pill">
       <span class="dot"></span>No file loaded
     </span>
+            <!-- SIGN IN AREA (filled in by the TEST block) -->
+        <div id="wt-auth" style="position:relative;display:flex;align-items:center;flex-shrink:0;">
+      <div id="wt-signin-btn"></div>
+      <button id="wt-signed-in-as" type="button" style="display:none;width:30px;height:30px;border-radius:50%;border:none;background:#d7486f;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;padding:0;flex-shrink:0;"></button>
+      <div id="wt-user-menu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:1000;background:#fff;color:#333;border:1px solid #ddd;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.15);padding:6px;min-width:220px;">
+        <div id="wt-user-menu-email" style="padding:6px 10px 8px;font-size:11.5px;color:#555;border-bottom:1px solid #eee;margin-bottom:4px;overflow-wrap:anywhere;"></div>
+        <button id="wt-signout-btn" type="button" style="background:none;border:none;padding:8px 10px;font-size:12px;color:#c62828;cursor:pointer;white-space:nowrap;font-family:inherit;">Sign out</button>
+      </div>
+    </div>
   </header>
 
   <!-- Sidebar -->
@@ -1872,17 +1884,10 @@ document.getElementById('folder-input').addEventListener('change', async (e) => 
 });
 
 function autoDetectRenderer(name) {
-  const n = name.toUpperCase();
-  if (n.startsWith('TM-') || n.includes('-TM-')) {
-    document.getElementById('renderer-select').value = 'tm';
-    currentRenderer = 'tm';
-  } else if (n.startsWith('BIBLE-') || n.includes('-BIBLE-')) {
-    document.getElementById('renderer-select').value = 'bible';
-    currentRenderer = 'bible';
-  } else {
-    document.getElementById('renderer-select').value = 'ak';
-    currentRenderer = 'ak';
-  }
+  // The renderer is chosen ONLY by the user (the Renderer dropdown).
+  // Opening a file no longer changes it — just keep the current choice
+  // and make sure Studio uses exactly what the dropdown shows.
+  currentRenderer = document.getElementById('renderer-select').value;
   updateRendererStat();
 }
 
@@ -2801,8 +2806,10 @@ img.wt-img-commented.wt-img-changed {
       endPath:   nodePath(range.endContainer,   root), endOffset:   range.endOffset
     };
   }
-  function highlightRange(range, annId) {
+    function highlightRange(range, annId) {
     try {
+      range = clampRangeToOneBox(range);          // never wrap across boxes (old saved addresses can point across them)
+      if (!range.toString().trim()) return;       // nothing left to highlight
       var frag = range.extractContents();
       var mark = document.createElement('mark');
       mark.className = 'wt-hl';
@@ -2811,6 +2818,32 @@ img.wt-img-commented.wt-img-changed {
       range.insertNode(mark);
     } catch(e) {}
   }
+    // Find the "box" a piece of text sits in: the nearest element that is NOT
+  // just inline text styling (e.g. a paragraph, a list item, an answer-choice box).
+  function boxOf(node) {
+    var el = node.nodeType === 3 ? node.parentNode : node;
+    while (el && el !== document.body) {
+      var d = '';
+      try { d = window.getComputedStyle(el).display; } catch (e) {}
+      if (d && d !== 'inline' && d !== 'contents') return el;
+      el = el.parentNode;
+    }
+    return document.body;
+  }
+
+  // Keep a highlight inside ONE box: if the selection runs into another box,
+  // stop it at the end of the box where it started. This prevents the browser
+  // from cutting boxes apart (which made rows stack and layouts jump).
+  function clampRangeToOneBox(range) {
+    var box = boxOf(range.startContainer);
+    if (box === document.body) return range;
+    if (box.contains(range.endContainer) && boxOf(range.endContainer) === box) return range;
+    var r = document.createRange();
+    r.setStart(range.startContainer, range.startOffset);
+    r.setEnd(box, box.childNodes.length);
+    return r;
+  }
+
   function removeHighlight(annId) {
     document.querySelectorAll('mark.wt-hl[data-ann-id="'+annId+'"]').forEach(function(m){
       var p = m.parentNode;
@@ -2873,8 +2906,9 @@ img.wt-img-commented.wt-img-changed {
     setTimeout(function() {
       var sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.toString().trim()) return;
-      var range = sel.getRangeAt(0);
-      var text  = sel.toString().trim();
+      var range = clampRangeToOneBox(sel.getRangeAt(0));   // keep the highlight inside ONE box
+      var text  = range ? range.toString().trim() : '';
+      if (!text) { sel.removeAllRanges(); return; }         // nothing left to highlight: do nothing
       var hd    = serializeRange(range, document.body);
       var tmpId = 'tmp_'+Date.now();
       highlightRange(range, tmpId);
@@ -3245,7 +3279,7 @@ function createNoteEl(ann) {
       }
       note.remove();
       annotations = annotations.filter(a => a.id !== ann.id);
-      saveAnnotationState(); refreshCommentsSidebar();
+      saveAnnotationState(); refreshCommentsSidebar(); if (typeof wtDeleteFromBackend === 'function') wtDeleteFromBackend(ann);
     });
   });
   const linkBtn = document.createElement('button');
@@ -3270,6 +3304,29 @@ function createNoteEl(ann) {
     body.selectionEnd   = start + insertText.length;
     autoGrow(); saveAnnotationState(); refreshCommentsSidebar();
   });
+    // Copy button: copies the whole comment text in one click
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'note-action-btn';
+  copyBtn.title = 'Copy comment';
+  copyBtn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  copyBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const text = ann.text || '';
+    if (!text.trim()) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      // Backup way, in case the browser blocks the normal clipboard
+      const tmp = document.createElement('textarea');
+      tmp.value = text;
+      document.body.appendChild(tmp);
+      tmp.select();
+      try { document.execCommand('copy'); } catch (e2) {}
+      tmp.remove();
+    }
+    if (typeof wtFlash === 'function') wtFlash('Comment copied');
+  });
+  actions.appendChild(copyBtn);
   actions.appendChild(linkBtn);
   actions.appendChild(deleteBtn);
   note.appendChild(actions);
@@ -3283,7 +3340,7 @@ function createNoteEl(ann) {
   function autoGrow() { body.style.height = 'auto'; body.style.height = body.scrollHeight + 'px'; }
   body.addEventListener('input', () => { ann.text = body.value; autoGrow(); saveAnnotationState(); refreshCommentsSidebar(); });
   body.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); body.blur(); saveAnnotationState(); refreshCommentsSidebar(); }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); body.blur(); saveAnnotationState(); refreshCommentsSidebar(); if (typeof wtSyncComment === 'function') wtSyncComment(ann); }
   });
   body.addEventListener('focus', (e) => { e.stopPropagation(); showEditing(); });
   body.addEventListener('mousedown', (e) => e.stopPropagation());
@@ -3296,7 +3353,7 @@ function createNoteEl(ann) {
   // text box (the textarea above), same as it's always been.
   const displayEl = document.createElement('div');
   displayEl.className = 'note-display';
-  function wtEscapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function wtEscapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   function wtLinkify(text) {
     return wtEscapeHtml(text || '')
       .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1<\/a>')
@@ -3312,8 +3369,11 @@ function createNoteEl(ann) {
     }
   }
   displayEl.addEventListener('mousedown', (e) => e.stopPropagation());
-  displayEl.addEventListener('click', (e) => {
+   displayEl.addEventListener('click', (e) => {
     if (e.target.tagName === 'A') return; // let the link open normally
+    // If the person just dragged to highlight some text, keep it (so they can Ctrl+C)
+    const sel = window.getSelection();
+    if (sel && sel.toString().trim() && displayEl.contains(sel.anchorNode)) return;
     showEditing(); body.focus();
   });
   note.appendChild(displayEl);
@@ -3443,7 +3503,13 @@ function refreshCommentsSidebar() {
     entry.className = 'comment-entry';
     const icon    = ann.type === 'image' ? '\uD83D\uDDBC\uFE0F ' : '';
     const preview = ann.text.trim() || (ann.highlightText ? `"${ann.highlightText.slice(0,30)}\u2026"` : '(empty)');
-    entry.innerHTML = `<span class="ce-page">Page ${ann.pageIndex + 1}</span><span class="ce-text">${icon}${preview}</span>`;
+    const pageEl = document.createElement('span');
+    pageEl.className = 'ce-page';
+    pageEl.textContent = 'Page ' + (ann.pageIndex + 1);
+    const textEl = document.createElement('span');
+    textEl.className = 'ce-text';
+    textEl.textContent = icon + preview;
+    entry.append(pageEl, textEl);
     entry.addEventListener('click', () => {
       scrollToPage(ann.pageIndex);
       const noteEl = document.getElementById(`ann-${ann.id}`);
@@ -3762,7 +3828,10 @@ async function wtCaptureImageAnchor(iDoc, ann) {
   if (!iDoc) return;
   try {
     const all = Array.from(iDoc.querySelectorAll('img'));
-    const same = all.filter(i => wtImgBasename(i.src) === ann.imgSrc);
+    // Match by the image's REAL filename (never changes), or by its current temporary address
+    const same = all.filter(i =>
+      (ann.imgFileName && i.getAttribute('data-wt-orig-src') === ann.imgFileName) ||
+      wtImgBasename(i.src) === ann.imgSrc);
     const img = same[ann.imgIndex] !== undefined ? same[ann.imgIndex] : same[0];
     if (!img) return;
     const hash = await wtHashImgEl(img);
@@ -3811,13 +3880,13 @@ function wtFindPageRawSpans(html) {
     const openStart = m.index;
     const openEnd   = openRe.lastIndex;
     tagRe.lastIndex = openEnd;
-    let depth = 1, closeEnd = -1, t;
+        let depth = 1, closeStart = -1, closeEnd = -1, t;
     while ((t = tagRe.exec(html))) {
       if (t[0].charAt(1) === '/') { depth--; if (depth === 0) { closeEnd = tagRe.lastIndex; break; } }
       else depth++;
     }
     if (closeEnd === -1) break; // malformed / unbalanced markup — bail out safely
-    spans.push({ openStart, openEnd, closeEnd });
+    spans.push({ openStart, openEnd, closeStart, closeEnd });
     openRe.lastIndex = closeEnd;
   }
   return spans;
@@ -3945,7 +4014,7 @@ function wtEmbedStickyAnchors(html) {
       if (!pageAnns || !pageAnns.length) return;
 
       const rawStart = span.openEnd + shift;
-      const rawEnd   = span.closeEnd + shift;
+            const rawEnd   = span.closeStart + shift;   // stop BEFORE the page's own </div>, so it's never lost
       const pageRaw  = out.slice(rawStart, rawEnd);
 
       // Comments already anchored on this page from an earlier save need no
@@ -4031,7 +4100,7 @@ function wtLocateTextAnnotation(ann) {
   if (ann.pageIndex != null && ann.pageIndex >= 0 && ann.pageIndex < iframes.length) order.push(ann.pageIndex);
   iframes.forEach((_, i) => { if (i !== ann.pageIndex) order.push(i); });
 
-  const rx = wtFlexRegexForQuote(quote);
+   const rx = wtFlexRegexForQuote(quote);
   if (rx) {
     for (const pi of order) {
       let iDoc; try { iDoc = iframes[pi].contentDocument; } catch (e) { continue; }
@@ -4042,17 +4111,28 @@ function wtLocateTextAnnotation(ann) {
       let m;
       while ((m = rx.exec(map.raw))) { matches.push(m); if (rx.lastIndex === m.index) rx.lastIndex++; }
       if (matches.length) {
-        let best = matches[0], bestScore = -1;
+        // The words saved just before and after the highlight (its "neighbors")
+        const nbBefore = wtNorm(anchor.prefix || '').slice(-15);
+        const nbAfter  = wtNorm(anchor.suffix || '').slice(0, 15);
+        const knowsNeighbors = !!(nbBefore || nbAfter);
+        let best = null, bestScore = -1;
         matches.forEach((mm, occ) => {
-          let score = 0;
+          // Compare neighbors with spaces/line breaks tidied up (HTML indentation is ignored)
+          const before = wtNorm(map.raw.slice(Math.max(0, mm.index - 300), mm.index));
+          const after  = wtNorm(map.raw.slice(mm.index + mm[0].length, mm.index + mm[0].length + 300));
+          let neighbors = 0;
+          if (nbBefore && before.slice(-60).indexOf(nbBefore) !== -1) neighbors++;
+          if (nbAfter  && after.slice(0, 60).indexOf(nbAfter)  !== -1) neighbors++;
+          // NEW RULE: same word but different neighbors = a different spot. Skip it.
+          if (knowsNeighbors && neighbors === 0) return;
+          let score = neighbors;
           if (anchor.occurrence !== undefined && occ === anchor.occurrence) score += 2;
-          const before = map.raw.slice(Math.max(0, mm.index - 40), mm.index);
-          const after  = map.raw.slice(mm.index + mm[0].length, mm.index + mm[0].length + 40);
-          if (anchor.prefix && before.indexOf(anchor.prefix.slice(-15)) !== -1) score += 1;
-          if (anchor.suffix && after.indexOf(anchor.suffix.slice(0, 15)) !== -1) score += 1;
           if (score > bestScore) { bestScore = score; best = mm; }
         });
-        return { status: 'found-exact', pageIndex: pi, iDoc, map, start: best.index, end: best.index + best[0].length };
+        if (best) {
+          return { status: 'found-exact', pageIndex: pi, iDoc, map, start: best.index, end: best.index + best[0].length };
+        }
+        // Every match on this page had the wrong neighbors: keep looking on the next page
       }
     }
   }
@@ -4218,6 +4298,7 @@ async function wtReconcileImageAnnotation(ann) {
   if (exactMatch) {
     ann.pageIndex = exactMatch.pageIndex;
     ann.imgIndex  = exactMatch.idx;
+    ann.imgSrc    = wtImgBasename(exactMatch.img.src);     // remember its current address
     exactMatch.img.classList.add('wt-img-commented');
     exactMatch.img.setAttribute('data-ann-id', String(ann.id));
   } else if (anyBasenameFound && sameNameFirst) {
@@ -4227,6 +4308,7 @@ async function wtReconcileImageAnnotation(ann) {
     // content itself may have changed.
     ann.pageIndex = sameNameFirst.pageIndex;
     ann.imgIndex  = sameNameFirst.idx;
+    ann.imgSrc    = wtImgBasename(sameNameFirst.img.src);  // remember its current address
     sameNameFirst.img.classList.add('wt-img-commented');
     sameNameFirst.img.setAttribute('data-ann-id', String(ann.id));
   }
@@ -4646,5 +4728,596 @@ function wtExtractGoogleDocEmbedUrl(rawLink) {
 
 </script>
 
+<!-- ═══ TEST ONLY: connection to the comments backend ═══ -->
+<script>
+      const WT_BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxHzVYuiUov01YIH8BfnIvnvTwIuvFO5bFcd-ISc98iy6FuI3LQqkUUPbvjY9jV7cWe/exec';
+
+  let wtIdToken   = null;   // the Google ID card
+  let wtUserEmail = null;   // who is signed in (for display only)
+
+  let wtUserName = null;   // the signed-in person's real name (for display only)
+  let wtTokenExp = 0;      // when the current sign-in expires (in milliseconds)
+
+  // Google runs this after the user signs in (or is signed back in automatically)
+  function wtOnSignIn(response) {
+    const firstSignIn = !wtUserEmail;      // first sign-in on this page (not a refresh after expiry)
+    wtIdToken = response.credential;
+
+    // Read the email, name and expiry time from the ID card (for display only;
+    // the backend checks the card properly). TextDecoder keeps letters like ñ correct.
+    const middlePart = response.credential.split('.')[1]
+      .replace(/-/g, '+').replace(/_/g, '/');
+    const bytes = Uint8Array.from(atob(middlePart), ch => ch.charCodeAt(0));
+    const cardInfo = JSON.parse(new TextDecoder().decode(bytes));
+    wtUserEmail = cardInfo.email;
+    wtUserName  = cardInfo.name || null;
+    wtTokenExp  = (cardInfo.exp || 0) * 1000;
+    if (wtUserName) wtNames[wtUserEmail] = wtUserName;
+
+    wtSetChoice('yes');          // remember: this person signs in
+    wtCloseWelcome();
+    wtShowSignedIn();
+
+    // Option A: comments made BEFORE signing in stay on this screen only
+    if (firstSignIn) annotations.forEach(a => { if (!a.backendId) a.notShared = true; });
+
+    if (currentHtmlName) wtLoadBackendComments();
+  }
+
+    // Send a request to the backend, with the ID card attached
+  async function wtCallBackend(payload) {
+    if (!wtIdToken) return { ok: false, error: 'Not signed in' };
+    if (wtTokenExp && Date.now() > wtTokenExp - 60000) {   // expired (or expiring within a minute)
+      wtSignInExpired();
+      return { ok: false, error: 'Sign-in expired' };
+    }
+    payload.idToken = wtIdToken;
+    const res = await fetch(WT_BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  // Work out the lesson code and revision from the file name.
+  // Looks for the lesson-code pattern at the start (e.g. MK-U1-C1-L001)
+  // and ignores anything after it (_R1, _reviewed, _test, " (1)", ...).
+  function wtLessonInfo() {
+    const name = (currentHtmlName || '').replace(/\.html?$/i, '');
+    const revMatch = name.match(/_R(\d+)/i);
+    const codeMatch = name.match(/^[A-Za-z0-9]+-U\d+-C\d+-L\d+/i);
+    const lessonCode = codeMatch
+      ? codeMatch[0].toUpperCase()
+      : name.replace(/_reviewed$/i, '').replace(/_R\d+.*$/i, '');   // fallback: old rule
+    return { lessonCode: lessonCode, revision: revMatch ? 'R' + revMatch[1] : '' };
+  }
+
+  // Send one sticky note to the backend.
+  // First time: SAVE it and remember its backend ID. After that: EDIT it.
+  async function wtSyncComment(ann) {
+    if (!wtIdToken) return;                               // not signed in: skip
+    if (ann.notShared && !ann.backendId) return;          // not-shared comment: stays on this screen
+    if (!ann.text || !ann.text.trim()) return;            // empty note: skip
+    if (ann.backendId && ann.text === ann.backendSentText) return;  // nothing changed
+
+    try {
+      let answer;
+      if (!ann.backendId) {
+        const info = wtLessonInfo();
+        const a = ann.anchor || {};
+        answer = await wtCallBackend({
+          action: 'save',
+          data: {
+            lessonCode: info.lessonCode,
+            revision: info.revision,
+            text: ann.text,
+            type: ann.type,
+            quotedText: a.quote || ann.highlightText || '',
+            textBefore: a.prefix || '',
+            textAfter: a.suffix || '',
+            whichOne: a.occurrence || 0,
+            imageName: ann.imgFileName || ann.imgSrc || '',
+            imageFingerprint: (ann.imgAnchor && ann.imgAnchor.hash) || '',
+            pageHint: ann.pageIndex
+          }
+        });
+        if (answer.ok) { ann.backendId = answer.result; ann.backendAuthor = wtUserEmail; ann.backendStatus = 'open'; wtDecorateNote(ann); }
+      } else {
+        answer = await wtCallBackend({ action: 'edit', commentId: ann.backendId, newText: ann.text });
+      }
+
+      if (answer.ok) ann.backendSentText = ann.text;
+      console.log('[backend]', answer);
+      wtFlash(answer.ok ? '☁️ saved' : '⚠️ not saved');
+    } catch (err) {
+      console.log('[backend] error', err);
+      wtFlash('⚠️ not saved');
+    }
+  }
+
+    // DELETE: tell the backend this note was deleted (hides it; never erases)
+  async function wtDeleteFromBackend(ann) {
+    if (!wtIdToken || !ann.backendId) return;     // not signed in, or never saved: nothing to do
+    try {
+      const answer = await wtCallBackend({ action: 'delete', commentId: ann.backendId });
+      console.log('[backend]', answer);
+      wtFlash(answer.ok ? '☁️ deleted' : '⚠️ not deleted: ' + answer.error);
+    } catch (err) {
+      console.log('[backend] error', err);
+      wtFlash('⚠️ not deleted');
+    }
+  }
+
+    // Small pop-up message at the bottom-left corner (fades away after a few seconds)
+  function wtFlash(msg, ms) {
+    // If the sign-in has expired, say that instead (it's the real reason something failed)
+    if (wtTokenExp && Date.now() > wtTokenExp - 60000) {
+      msg = '⚠️ Sign-in expired. Please sign in again, then try again.';
+      ms = 6000;
+    }
+    let box = document.getElementById('wt-toast');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'wt-toast';
+      box.style.cssText = 'position:fixed;left:20px;bottom:20px;z-index:100000;max-width:340px;padding:9px 14px;border-radius:10px;background:#2b2b33;color:#fff;font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:opacity .25s;pointer-events:none;';
+      document.body.appendChild(box);
+    }
+    box.textContent = msg;
+    box.style.opacity = '1';
+    clearTimeout(wtFlash._timer);
+    wtFlash._timer = setTimeout(() => { box.style.opacity = '0'; }, ms || 2800);
+  }
+
+    // Move each backend note so it sits beside its highlight or image
+  function wtAlignNotesToContent() {
+    annotations.forEach(ann => {
+      if (!ann.backendId) return;
+      const iframe = document.getElementById('iframe-' + ann.pageIndex);
+      let iDoc; try { iDoc = iframe && iframe.contentDocument; } catch (e) { return; }
+      if (!iDoc) return;
+      const el = iDoc.querySelector('mark.wt-hl[data-ann-id="' + ann.id + '"], img[data-ann-id="' + ann.id + '"]');
+      if (!el) return;                       // not found: stays at the top of the page
+      ann.y = Math.max(5, Math.round(el.getBoundingClientRect().top));
+    });
+    wtRepositionNotes();                     // Studio's existing "move notes into place"
+  }
+
+    // Find an image by its real filename (e.g. "eagle.png") on any page
+  function wtFindImageByName(ann) {
+    if (!ann.imgFileName) return;
+    const iframes = Array.from(document.querySelectorAll('.page-iframe'));
+    for (let pi = 0; pi < iframes.length; pi++) {
+      let iDoc; try { iDoc = iframes[pi].contentDocument; } catch (e) { continue; }
+      if (!iDoc) continue;
+      const img = iDoc.querySelector('img[data-wt-orig-src="' + CSS.escape(ann.imgFileName) + '"]');
+      if (img) {
+        ann.pageIndex = pi;
+        ann.imgSrc = wtImgBasename(img.src);
+        const same = Array.from(iDoc.querySelectorAll('img')).filter(i => wtImgBasename(i.src) === ann.imgSrc);
+        ann.imgIndex = Math.max(0, same.indexOf(img));
+        return;
+      }
+    }
+  }
+
+  // Are all the lesson pages finished loading?
+  function wtPagesReady() {
+    const iframes = Array.from(document.querySelectorAll('.page-iframe'));
+    if (!iframes.length) return false;
+    return iframes.every(f => { try { return f.contentDocument.readyState === 'complete'; } catch (e) { return false; } });
+  }
+
+    // LOAD: get this lesson's comments (and replies) from the backend and show them
+  async function wtLoadBackendComments(tries) {
+    tries = tries || 0;
+    if (!wtIdToken || !currentHtmlName) return;
+    if (!wtPagesReady()) {                               // pages still loading: try again shortly
+      if (tries < 20) setTimeout(() => wtLoadBackendComments(tries + 1), 300);
+      return;
+    }
+
+    const info = wtLessonInfo();
+    let answer;
+    try {
+      answer = await wtCallBackend({ action: 'list', lessonCode: info.lessonCode });
+    } catch (err) {
+      console.log('[backend] error', err); wtFlash('⚠️ could not load comments'); return;
+    }
+    if (!answer.ok) { console.log('[backend]', answer); wtFlash('⚠️ could not load comments'); return; }
+
+    // Group replies under the comment they answer
+    wtReplies = {};
+    answer.result.filter(c => c.reply_to).forEach(r => {
+      (wtReplies[r.reply_to] = wtReplies[r.reply_to] || []).push(r);
+    });
+
+    // Learn everyone's real name from the rows we just received
+    answer.result.forEach(c => {
+      if (c.author_email && c.author_name) wtNames[c.author_email] = String(c.author_name);
+    });
+
+    const mainComments = answer.result.filter(c => !c.reply_to);
+    let added = 0;
+
+    mainComments.forEach(c => {
+      const existing = annotations.find(a => a.backendId === c.comment_id);
+      if (existing) {                                    // already on screen: just refresh its status
+        existing.backendStatus = c.status;
+        existing.backendResolvedBy = c.resolved_by;
+        return;
+      }
+
+      let hint = Number(c.page_hint) || 0;
+      if (!document.getElementById('wrapper-' + hint)) hint = 0;   // page no longer exists: start at page 1
+
+      const ann = {
+                id: ++annotIdSeq, pageIndex: hint, wtHomePage: hint,
+        type: c.type === 'image' ? 'image' : 'text',
+        x: WT_GUTTER_X, y: 60,
+        text: String(c.text || ''), time: c.created_at || new Date().toISOString(), collapsed: false,
+        highlightData: null, highlightText: String(c.quoted_text || ''),
+        imgSrc: null, imgIndex: 0, imgFileName: c.image_name ? String(c.image_name) : null,
+        anchor: {
+          quote: String(c.quoted_text || ''),
+          prefix: String(c.text_before || ''),
+          suffix: String(c.text_after || ''),
+          occurrence: Number(c.which_one) || 0
+        },
+        imgAnchor: c.image_fingerprint ? { hash: String(c.image_fingerprint) } : null,
+        reviewState: 'yellow', everChanged: false, stickerActive: false,
+        // backend info
+        backendId: c.comment_id, backendSentText: String(c.text || ''),
+        backendAuthor: c.author_email, backendStatus: c.status, backendResolvedBy: c.resolved_by
+      };
+      if (ann.type === 'image') wtFindImageByName(ann);
+
+      annotations.push(ann);
+      const wrapperEl = document.getElementById('wrapper-' + ann.pageIndex);
+      if (wrapperEl) wrapperEl.appendChild(createNoteEl(ann));
+      added++;
+    });
+
+    if (added) {
+      await wtReconcileAll();      // Studio's existing "find the spot again" logic
+      setTimeout(wtAlignNotesToContent, 600);
+      const panel = document.getElementById('comments-panel');
+      if (panel) panel.classList.add('open');
+    }
+    wtDecorateAllNotes();
+    wtFlash('☁️ ' + added + ' comment(s) loaded for ' + info.lessonCode);
+  }
+  
+  // When a lesson file is opened, also load its comments from the backend
+  const _wtOrigOpenHtmlFileHandle = window.openHtmlFileHandle;
+  window.openHtmlFileHandle = async function(fileHandle) {
+    await _wtOrigOpenHtmlFileHandle(fileHandle);
+    setTimeout(() => wtLoadBackendComments(), 1000);
+  };
+
+  // ═══ STEP 5d: author names, replies, resolve ═══
+
+  let wtReplies = {};   // replies grouped by the comment they answer: { commentId: [reply, reply] }
+    const wtNames = {};   // email → real name, e.g. { 'loran.inosa@thynker.tech': 'Loran Iñosa' }
+
+  // Real name if we know it, otherwise the part of the email before the @
+  function wtNameFor(email) { return wtNames[email] || wtShortName(email); }
+
+  function wtShortName(email) { return String(email || '').split('@')[0] || 'someone'; }
+  function wtShortTime(t) {
+    try { return new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+    catch (e) { return ''; }
+  }
+
+  // Look for the thread area
+  (function wtAddThreadStyles() {
+    const s = document.createElement('style');
+    s.textContent = `
+      .wt-thread { margin-top:6px; padding-top:6px; border-top:1px dashed rgba(128,128,128,.4); font-family:Montserrat,sans-serif; font-size:10.5px; }
+      .wt-thread-by { color:#888; font-style:italic; margin-bottom:4px; }
+            .wt-thread-reply { margin:4px 0; padding:4px 6px; background:rgba(128,128,128,.12); border-radius:6px; overflow-wrap:anywhere; user-select:text; -webkit-user-select:text; }
+      .wt-thread-time { color:#999; font-size:9px; margin-top:2px; }
+      .wt-thread-input { width:100%; box-sizing:border-box; margin-top:4px; padding:4px 6px; font-size:10.5px; border:1px solid rgba(128,128,128,.4); border-radius:6px; background:transparent; color:inherit; font-family:inherit; }
+      .wt-thread-btn { margin-top:4px; font-size:10px; padding:2px 8px; border-radius:10px; border:1px solid rgba(128,128,128,.5); background:transparent; color:inherit; cursor:pointer; font-family:inherit; }
+      .wt-done-btn { display:inline-flex; align-items:center; gap:5px; margin-top:6px; padding:2px 4px; border:none; background:transparent; color:#d7486f; cursor:pointer; font-family:inherit; font-size:11px; font-weight:700; }
+      .wt-done-btn svg { width:18px; height:18px; flex-shrink:0; }
+      .wt-done-btn.is-done { color:#8bb55a; }
+      .wt-done-btn:disabled { opacity:.5; cursor:wait; }
+      .wt-annotation.collapsed .wt-thread { display:none; }
+    `;
+    document.head.appendChild(s);
+  })();
+
+    // Shared notes get name + thread; not-shared notes get a small label (only when signed in)
+    function wtDecorateAllNotes() {
+    annotations.forEach(ann => {
+      if (ann.backendId) wtDecorateNote(ann);
+      else if (ann.notShared && wtIdToken) wtLabelLocalNote(ann);
+    });
+    wtMarkMovedNotes();        // ← NEW
+  }
+
+    // Build (or rebuild) the name header + thread area for ONE note
+  function wtDecorateNote(ann) {
+    const note = document.getElementById('ann-' + ann.id);
+    if (!note) return;
+    const oldThread = note.querySelector('.wt-thread');
+    if (oldThread) oldThread.remove();
+    const oldHead = note.querySelector('.wt-note-head');
+    if (oldHead) oldHead.remove();
+
+    const isMine   = ann.backendAuthor === wtUserEmail;
+    const resolved = ann.backendStatus === 'resolved';
+
+    // Other people's comments: no editing, no ✕ (the backend refuses these anyway)
+    const body = note.querySelector('.note-body');
+    if (body) body.readOnly = !isMine;
+    const delBtn = note.querySelector('.note-action-btn[title="Delete comment"]');
+    if (delBtn) delBtn.style.display = isMine ? '' : 'none';
+
+    note.classList.toggle('wt-resolved', resolved);
+
+    // NAME HEADER at the top of the note (like Google Docs)
+    const head = document.createElement('div');
+    head.className = 'wt-note-head';
+    head.style.cssText = 'font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;margin:0 0 4px;';
+    head.textContent = wtNameFor(ann.backendAuthor);
+    const headTime = document.createElement('span');
+    headTime.style.cssText = 'font-weight:400;color:#999;font-size:9.5px;margin-left:6px;';
+    headTime.textContent = wtShortTime(ann.time);
+    head.appendChild(headTime);
+    const dragHandle = note.querySelector('.note-drag-handle');
+    if (dragHandle && dragHandle.nextSibling) note.insertBefore(head, dragHandle.nextSibling);
+    else note.prepend(head);
+
+    const thread = document.createElement('div');
+    thread.className = 'wt-thread';
+    thread.addEventListener('mousedown', e => e.stopPropagation());
+
+    // Replies (textContent only: other people's text is never treated as code)
+    (wtReplies[ann.backendId] || []).forEach(r => {
+      const row  = document.createElement('div');
+      row.className = 'wt-thread-reply';
+      const who  = document.createElement('b');
+      who.textContent = wtNameFor(r.author_email) + ': ';
+      const txt  = document.createElement('span');
+      txt.textContent = r.text;
+      const when = document.createElement('div');
+      when.className = 'wt-thread-time';
+      when.textContent = wtShortTime(r.created_at);
+      row.append(who, txt, when);
+      thread.appendChild(row);
+    });
+
+    // Reply box
+    const input = document.createElement('input');
+    input.className = 'wt-thread-input';
+    input.placeholder = 'Reply… (Enter to send)';
+    input.addEventListener('keydown', async e => {
+      e.stopPropagation();
+      if (e.key !== 'Enter' || !input.value.trim()) return;
+      e.preventDefault();
+      const text = input.value.trim();
+      input.disabled = true;
+      const answer = await wtCallBackend({
+        action: 'save',
+        data: { lessonCode: wtLessonInfo().lessonCode, replyTo: ann.backendId, text: text }
+      }).catch(() => ({ ok: false }));
+      if (answer.ok) {
+        (wtReplies[ann.backendId] = wtReplies[ann.backendId] || []).push(
+          { comment_id: answer.result, author_email: wtUserEmail, text: text, created_at: new Date().toISOString() });
+        wtDecorateNote(ann);
+        wtFlash('☁️ reply sent');
+      } else {
+        input.disabled = false;
+        wtFlash('⚠️ reply not sent');
+      }
+    });
+    thread.appendChild(input);
+
+        // DONE button (anyone can). The Sheet still stores 'resolved' / 'open'.
+    // Pink = not done yet, green = done. Click again to undo.
+    const btn = document.createElement('button');
+    btn.className = 'wt-done-btn' + (resolved ? ' is-done' : '');
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        '<circle cx="11" cy="13" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/>' +
+        '<path d="M7 13.2l3 3.3L20.5 4.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg><span>Done</span>';
+    btn.title = resolved
+      ? 'Marked done by ' + wtNameFor(ann.backendResolvedBy) + ' (click to undo)'
+      : 'Mark as done';
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      btn.disabled = true;
+      const newStatus = resolved ? 'open' : 'resolved';
+      const answer = await wtCallBackend({ action: 'status', commentId: ann.backendId, status: newStatus })
+        .catch(() => ({ ok: false }));
+      if (answer.ok) {
+        ann.backendStatus = newStatus;
+        ann.backendResolvedBy = newStatus === 'resolved' ? wtUserEmail : '';
+        wtDecorateNote(ann);
+      } else {
+        btn.disabled = false;
+        wtFlash('⚠️ could not update');
+      }
+    });
+    thread.appendChild(btn);
+
+    note.appendChild(thread);
+  }
+  
+  // Studio rebuilds notes whenever the lesson re-renders (file saved, images loaded,
+  // PDF Sim toggled). Every rebuild ends with wtRepositionNotes, so re-add threads there.
+  const _wtOrigRepositionNotes = window.wtRepositionNotes;
+  window.wtRepositionNotes = function() {
+    _wtOrigRepositionNotes();
+    wtDecorateAllNotes();
+  };
+
+    // ═══ STEP: welcome screen, remembered choice, toolbar email, sign out ═══
+
+  const WT_CLIENT_ID = '483380632303-00dmlah61gfo683b11daelmcsbofejm7.apps.googleusercontent.com';
+
+  // Remember the choice in the browser ('yes' = signs in, 'no' = doesn't, null = not asked yet)
+  function wtGetChoice() { try { return localStorage.getItem('wt-signin-choice'); } catch (e) { return null; } }
+  function wtSetChoice(v) {
+    try { if (v) localStorage.setItem('wt-signin-choice', v); else localStorage.removeItem('wt-signin-choice'); }
+    catch (e) {}
+  }
+
+  // Wait until Google's sign-in tool has finished loading
+  function wtWhenGoogleReady(cb) {
+    if (window.google && google.accounts && google.accounts.id) cb();
+    else setTimeout(() => wtWhenGoogleReady(cb), 100);
+  }
+
+  // Toolbar: signed-in look (email pill) vs signed-out look (Sign in button)
+    function wtShowSignedIn() {
+    document.getElementById('wt-signin-btn').style.display = 'none';
+    const chip = document.getElementById('wt-signed-in-as');
+    chip.style.display = '';
+    chip.textContent = (wtUserName || wtUserEmail || '?').trim().charAt(0).toUpperCase();   // e.g. "L"
+    chip.title = (wtUserName ? wtUserName + '\n' : '') + wtUserEmail;                       // shown on hover
+        // Signed-in line in the menu: green check icon (same style as "Done") + name · email
+    const menuEmail = document.getElementById('wt-user-menu-email');
+    menuEmail.innerHTML =
+      '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style="vertical-align:-3px;margin-right:6px;color:#8bb55a;">' +
+        '<circle cx="11" cy="13" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/>' +
+        '<path d="M7 13.2l3 3.3L20.5 4.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>';
+    const who = document.createElement('span');
+    who.textContent = (wtUserName ? wtUserName + ' · ' : '') + wtUserEmail;
+    menuEmail.appendChild(who);
+  }
+  function wtShowSignedOut() {
+    const box = document.getElementById('wt-signin-btn');
+    box.style.display = '';
+    if (!box.hasChildNodes()) {
+      google.accounts.id.renderButton(box, { type: 'standard', size: 'small', text: 'signin', shape: 'pill' });
+    }
+    document.getElementById('wt-signed-in-as').style.display = 'none';
+    document.getElementById('wt-user-menu').style.display = 'none';
+  }
+
+    // Sign-in ran out (about 1 hour): show the Sign in button + a pop-up, and try to sign back in
+  function wtSignInExpired() {
+    wtShowSignedOut();
+    wtFlash('⚠️ Sign-in expired. Please sign in again, then try again.', 6000);
+    try { google.accounts.id.prompt(); } catch (e) {}
+  }
+
+  // The welcome box
+  function wtShowWelcome() {
+    if (document.getElementById('wt-welcome')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'wt-welcome';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(20,20,30,.45);display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;';
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#fff;color:#222;border-radius:16px;padding:28px 30px;width:min(380px,90vw);box-shadow:0 12px 40px rgba(0,0,0,.25);text-align:center;';
+    box.innerHTML =
+      '<div style="font-size:20px;font-weight:800;color:#d7486f;margin-bottom:8px;">Welcome to Worktext Studio</div>' +
+      '<div style="font-size:13px;color:#555;line-height:1.5;margin-bottom:18px;">Sign in with your company Google account to share comments and replies with your team.</div>' +
+      '<div id="wt-welcome-google" style="display:flex;justify-content:center;margin-bottom:12px;"></div>' +
+      '<button id="wt-welcome-no" type="button" style="background:none;border:none;color:#777;font-size:12.5px;text-decoration:underline;cursor:pointer;font-family:inherit;">No, continue without signing in</button>' +
+      '<div style="font-size:11px;color:#999;margin-top:14px;">You can sign in later from the top bar.</div>';
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    google.accounts.id.renderButton(document.getElementById('wt-welcome-google'),
+      { type: 'standard', size: 'large', text: 'signin_with', shape: 'pill' });
+    document.getElementById('wt-welcome-no').addEventListener('click', () => {
+      wtSetChoice('no');       // remember: this person doesn't sign in
+      wtCloseWelcome();
+    });
+  }
+  function wtCloseWelcome() {
+    const el = document.getElementById('wt-welcome');
+    if (el) el.remove();
+  }
+
+  // Clicking the email opens the small menu; clicking anywhere else closes it
+  document.getElementById('wt-signed-in-as').addEventListener('click', e => {
+    e.stopPropagation();
+    const menu = document.getElementById('wt-user-menu');
+    menu.style.display = menu.style.display === 'none' ? '' : 'none';
+  });
+  document.addEventListener('click', () => {
+    document.getElementById('wt-user-menu').style.display = 'none';
+  });
+
+  // Sign out: forget the remembered choice and reload
+  document.getElementById('wt-signout-btn').addEventListener('click', () => {
+    if (!confirm('Sign out of Worktext Studio?\n\nThe page will reload. Comments that are not shared will be cleared, so use Save Reviewed HTML first if you need them.')) return;
+    try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+    wtSetChoice(null);
+    location.reload();
+  });
+
+  // Small grey label on not-shared notes
+  function wtLabelLocalNote(ann) {
+    const note = document.getElementById('ann-' + ann.id);
+    if (!note || note.querySelector('.wt-note-head')) return;
+    const head = document.createElement('div');
+    head.className = 'wt-note-head';
+    head.style.cssText = 'font-family:Montserrat,sans-serif;font-size:10px;color:#999;font-style:italic;margin:0 0 4px;';
+    head.textContent = '📄 Not shared';
+    head.title = 'This comment is only on this screen. Use Save Reviewed HTML to keep it.';
+    const dragHandle = note.querySelector('.note-drag-handle');
+    if (dragHandle && dragHandle.nextSibling) note.insertBefore(head, dragHandle.nextSibling);
+    else note.prepend(head);
+  }
+
+  // Comments restored from a file (and not already shared) are "not shared"
+  const _wtOrigRestoreAnnotations = window.restoreAnnotations;
+  window.restoreAnnotations = function(data) {
+    _wtOrigRestoreAnnotations(data);
+        annotations.forEach(a => {
+      if (!a.backendId) a.notShared = true;
+      a.wtHomePage = a.pageIndex;        // the page saved in the file = its home page
+    });
+  };
+
+  // START: set up Google sign-in, then follow the remembered choice
+  wtWhenGoogleReady(() => {
+    google.accounts.id.initialize({
+      client_id: WT_CLIENT_ID,
+      callback: wtOnSignIn,
+      auto_select: true,              // sign back in automatically when possible
+      cancel_on_tap_outside: true
+    });
+    wtShowSignedOut();                // toolbar starts with the small "Sign in"
+    const choice = wtGetChoice();
+    if (choice === 'yes') google.accounts.id.prompt();   // try to sign back in automatically
+    else if (!choice) wtShowWelcome();                    // never asked: show the welcome box
+    // choice === 'no': do nothing, Studio works without signing in
+  });
+
+    // "📍 Moved from page X, please check": shown when a note ends up on a different page than its home page
+  function wtMarkMovedNotes() {
+    annotations.forEach(ann => {
+      if (ann.wtHomePage == null) ann.wtHomePage = ann.pageIndex;   // brand-new notes: where they were made
+      const note = document.getElementById('ann-' + ann.id);
+      if (!note) return;
+      let tag = note.querySelector('.wt-moved');
+      if (ann.pageIndex === ann.wtHomePage) { if (tag) tag.remove(); return; }
+      if (!tag) {
+        tag = document.createElement('div');
+        tag.className = 'wt-moved';
+        tag.style.cssText = 'font-family:Montserrat,sans-serif;font-size:10px;font-weight:600;color:#e65100;background:#fff3e0;border-radius:6px;padding:2px 6px;margin:0 0 4px;display:inline-block;';
+        const dragHandle = note.querySelector('.note-drag-handle');
+        if (dragHandle && dragHandle.nextSibling) note.insertBefore(tag, dragHandle.nextSibling);
+        else note.prepend(tag);
+      }
+      tag.innerHTML =
+        '<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="vertical-align:-1px;margin-right:4px;">' +
+          '<path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.6A2.6 2.6 0 1 1 12 6.4a2.6 2.6 0 0 1 0 5.2z"/>' +
+        '</svg>';
+      const label = document.createElement('span');
+      label.textContent = 'Moved from page ' + (ann.wtHomePage + 1) + ', please check';
+      tag.appendChild(label);
+    });
+  }
+
+</script>
 </body>
 </html>
