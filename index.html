@@ -395,7 +395,6 @@
       flex-direction: column;
       width: 35%;
       min-width: 280px;
-      max-width: 640px;
       height: 100%;
       flex-shrink: 0;
       border-right: 1px solid var(--border);
@@ -441,6 +440,33 @@
       border: none;
       display: block;
     }
+        /* Drag-to-resize line between Google Doc and Worktext */
+    #gdoc-resizer {
+      display: none;
+      flex: 0 0 6px;
+      width: 6px;
+      height: 100%;
+      cursor: col-resize;
+      background: var(--border);
+      touch-action: none;
+      position: relative;
+    }
+    #gdoc-resizer::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 1px;
+      width: 4px; height: 36px;
+      margin-top: -18px;
+      border-radius: 2px;
+      background: #D7486F;
+      opacity: 0.45;
+    }
+    #gdoc-resizer:hover, body.wt-gdoc-resizing #gdoc-resizer { background: #EDA4C8; }
+    #gdoc-resizer:hover::after, body.wt-gdoc-resizing #gdoc-resizer::after { opacity: 1; }
+    .app.mode-review #gdoc-resizer { display: block; }
+    .app.mode-review .canvas-area { align-items: safe center; }
+    body.wt-gdoc-resizing, body.wt-gdoc-resizing * { cursor: col-resize !important; user-select: none !important; }
+    body.wt-gdoc-resizing iframe { pointer-events: none !important; }
     .empty-state {
       margin: auto;
       text-align: center;
@@ -1288,6 +1314,9 @@
         <iframe id="gdoc-iframe" title="Google Docs storyboard" style="display:none;"></iframe>
       </div>
     </div>
+
+    <!-- Drag this line left/right to resize the Google Doc panel. Double-click to reset. -->
+    <div id="gdoc-resizer" title="Drag to resize · Double-click to reset"></div>
 
     <main class="canvas-area" id="canvas-area">
       <div class="empty-state" id="empty-state">
@@ -5317,6 +5346,70 @@ function wtExtractGoogleDocEmbedUrl(rawLink) {
       tag.appendChild(label);
     });
   }
+   </script>
+<script>
+/* Google Doc panel: drag-to-resize line (self-contained, only changes the panel width) */
+(function () {
+  var panel   = document.getElementById('gdoc-panel');
+  var resizer = document.getElementById('gdoc-resizer');
+  var row     = document.getElementById('workspace-row');
+  if (!panel || !resizer || !row) return;
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+
+  var MIN_W = 280, MIN_CANVAS = 360;
+  function maxW() {
+    var rw = row.getBoundingClientRect().width || window.innerWidth;
+    return Math.max(MIN_W, rw - MIN_CANVAS - resizer.offsetWidth);
+  }
+  function clampW(w) { return Math.round(Math.min(maxW(), Math.max(MIN_W, w))); }
+  function applyWidth(w) { panel.style.width = clampW(w) + 'px'; }
+
+  var saved = parseFloat(lsGet('wt-gdoc-width'));
+  if (saved > 0) applyWidth(saved);
+
+  var dragging = false, startX = 0, startW = 0;
+  resizer.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) return;
+    dragging = true;
+    startX = e.clientX;
+    startW = panel.getBoundingClientRect().width;
+    try { resizer.setPointerCapture(e.pointerId); } catch (err) {}
+    document.body.classList.add('wt-gdoc-resizing');
+    e.preventDefault();
+  });
+  resizer.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    applyWidth(startW + (e.clientX - startX));
+  });
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    try { resizer.releasePointerCapture(e.pointerId); } catch (err) {}
+    document.body.classList.remove('wt-gdoc-resizing');
+    lsSet('wt-gdoc-width', String(Math.round(panel.getBoundingClientRect().width)));
+  }
+  resizer.addEventListener('pointerup', endDrag);
+  resizer.addEventListener('pointercancel', endDrag);
+  resizer.addEventListener('lostpointercapture', endDrag);
+
+  resizer.addEventListener('dblclick', function () {
+    panel.style.width = '';
+    lsSet('wt-gdoc-width', null);
+  });
+
+  function reclamp() {
+    if (!panel.style.width) return;
+    var stored = parseFloat(lsGet('wt-gdoc-width')) || parseFloat(panel.style.width);
+    applyWidth(stored);
+  }
+  window.addEventListener('resize', reclamp);
+  ['mode-btn-review', 'mode-btn-revise'].forEach(function (id) {
+    var b = document.getElementById(id);
+    if (b) b.addEventListener('click', function () { setTimeout(reclamp, 0); });
+  });
+})();
 
 </script>
 </body>
