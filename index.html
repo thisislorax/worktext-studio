@@ -3944,13 +3944,17 @@ function wtLocateAnchorInDoc(doc, anchor) {
       while ((m = rx.exec(map.raw))) { matches.push(m); if (rx.lastIndex === m.index) rx.lastIndex++; }
       if (matches.length) {
         let best = matches[0], bestScore = -1;
-        matches.forEach((mm, occ) => {
+            matches.forEach((mm, occ) => {
           let score = 0;
           if (anchor.occurrence !== undefined && occ === anchor.occurrence) score += 2;
-          const before = map.raw.slice(Math.max(0, mm.index - 40), mm.index);
-          const after  = map.raw.slice(mm.index + mm[0].length, mm.index + mm[0].length + 40);
-          if (anchor.prefix && before.indexOf(anchor.prefix.slice(-15)) !== -1) score += 1;
-          if (anchor.suffix && after.indexOf(anchor.suffix.slice(0, 15)) !== -1) score += 1;
+          // Tidy up spaces/line breaks before comparing neighbor words
+          const before = wtNorm(map.raw.slice(Math.max(0, mm.index - 300), mm.index));
+          const after  = wtNorm(map.raw.slice(mm.index + mm[0].length, mm.index + mm[0].length + 300));
+          const pre = wtNorm(anchor.prefix || '').slice(-15);
+          const suf = wtNorm(anchor.suffix || '').slice(0, 15);
+          // Matching neighbors count more than the position number
+          if (pre && before.slice(-60).indexOf(pre) !== -1) score += 3;
+          if (suf && after.slice(0, 60).indexOf(suf) !== -1) score += 3;
           if (score > bestScore) { bestScore = score; best = mm; }
         });
         return { start: best.index, end: best.index + best[0].length, map };
@@ -4286,7 +4290,7 @@ function wtReconcileTextAnnotation(ann) {
   }
 
   if (result.status === 'found-exact' || result.status === 'found-changed') {
-    const clamped = wtClampRangeToBlock(result.map, result.start, result.end);
+    const clamped = wtEmbedClampRangeToBlock(result.map, result.start, result.end);
     const range = wtRangeFromClamped(result.iDoc, clamped);
     if (range) wtWrapRangeInMark(result.iDoc, range, ann.id, 'wt-hl-yellow');
   }
